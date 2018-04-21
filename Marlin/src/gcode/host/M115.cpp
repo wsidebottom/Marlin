@@ -144,6 +144,7 @@ void GcodeSuite::M115() {
       #if ENABLED(AUTO_REPORT_SD_STATUS)
         , true
       #endif
+    );
 
     // CNC_MODE
     cap_line(PSTR("CNC_MODE")

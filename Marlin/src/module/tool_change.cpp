@@ -477,7 +477,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
       feedrate_mm_s = old_feedrate_mm_s;
 
-    #elif // HOTENDS <= 1
+    #else // HOTENDS <= 1
 
       UNUSED(fr_mm_s);
       UNUSED(no_move);
