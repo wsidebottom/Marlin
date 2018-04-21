@@ -48,7 +48,7 @@
 
 #endif // !NO_VOLUMETRICS
 
-#if DISABLED(CNC_MODE)
+#if !defined(CNC_MODE)
 /**
  * M201: Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
  *
@@ -89,7 +89,7 @@ void GcodeSuite::M203() {
  * M204: Set Accelerations in units/sec^2 (M204 P1200 R3000 T3000)
  *
  *    P = Printing moves
- *    R = Retract only (no X, Y, Z) moves
+ *    R = Retract only (no X, Y, Z) moves (Disabled in CNC_MODE)
  *    T = Travel (non printing) moves
  */
 void GcodeSuite::M204() {
@@ -102,17 +102,21 @@ void GcodeSuite::M204() {
     planner.acceleration = parser.value_linear_units();
     report = false;
   }
-  if (parser.seenval('R')) {
-    planner.retract_acceleration = parser.value_linear_units();
-    report = false;
-  }
+  #if !defined(CNC_MODE)
+    if (parser.seenval('R')) {
+      planner.retract_acceleration = parser.value_linear_units();
+      report = false;
+    }
+  #endif
   if (parser.seenval('T')) {
     planner.travel_acceleration = parser.value_linear_units();
     report = false;
   }
   if (report) {
     SERIAL_ECHOPAIR("Acceleration: P", planner.acceleration);
-    SERIAL_ECHOPAIR(" R", planner.retract_acceleration);
+    #if !defined(CNC_MODE)
+      SERIAL_ECHOPAIR(" R", planner.retract_acceleration);
+    #endif
     SERIAL_ECHOLNPAIR(" T", planner.travel_acceleration);
   }
 }

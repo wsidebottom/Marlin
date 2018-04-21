@@ -187,7 +187,9 @@ class Planner {
     static uint32_t min_segment_time_us; // Use 'M205 B<µs>' to override
     static float min_feedrate_mm_s,
                  acceleration,         // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
-                 retract_acceleration, // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
+                #if !defined(CNC_MODE)
+                  retract_acceleration, // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
+                #endif
                  travel_acceleration,  // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
                  max_jerk[XYZE],       // The largest speed change requiring no acceleration
                  min_travel_feedrate_mm_s;
@@ -604,7 +606,7 @@ class Planner {
 
     #endif
 
-    #if ENABLED(AUTOTEMP)
+    #if ENABLED(AUTOTEMP) && !defined(CNC_MODE)
       static float autotemp_min, autotemp_max, autotemp_factor;
       static bool autotemp_enabled;
       static void getHighESpeed();

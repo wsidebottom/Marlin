@@ -112,9 +112,9 @@
        G38_endstop_hit = false;
 #endif
 
-#if ENABLED(DELTA) && DISABLED(CNC_MODE)
+#if ENABLED(DELTA)
   #include "module/delta.h"
-#elif IS_SCARA && DISABLED(CNC_MODE)
+#elif IS_SCARA
   #include "module/scara.h"
 #endif
 
@@ -122,15 +122,15 @@
   #include "feature/bedlevel/bedlevel.h"
 #endif
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT) && DISABLED(CNC_MODE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
   #include "feature/pause.h"
 #endif
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
+#if ENABLED(FILAMENT_RUNOUT_SENSOR)
   #include "feature/runout.h"
 #endif
 
-#if ENABLED(TEMP_STAT_LEDS) && DISABLED(CNC_MODE)
+#if ENABLED(TEMP_STAT_LEDS)
   #include "feature/leds/tempstat.h"
 #endif
 
@@ -142,7 +142,7 @@
   #include "feature/fanmux.h"
 #endif
 
-#if ((ENABLED(SWITCHING_EXTRUDER) && !DONT_SWITCH) || ENABLED(SWITCHING_NOZZLE) || ENABLED(PARKING_EXTRUDER)) && DISABLED(CNC_MODE)
+#if (ENABLED(SWITCHING_EXTRUDER) && !DONT_SWITCH) || ENABLED(SWITCHING_NOZZLE) || ENABLED(PARKING_EXTRUDER)
   #include "module/tool_change.h"
 #endif
 
@@ -328,7 +328,7 @@ void disable_all_steppers() {
  */
 void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     runout.run();
   #endif
 
@@ -343,7 +343,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
   }
 
   // Prevent steppers timing-out in the middle of M600
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
     #define MOVE_AWAY_TEST !did_pause_print
   #else
     #define MOVE_AWAY_TEST true
@@ -512,7 +512,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
  * Standard idle routine keeps the machine alive
  */
 void idle(
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
     bool no_stepper_sleep/*=false*/
   #endif
 ) {
@@ -527,12 +527,14 @@ void idle(
   #endif
 
   manage_inactivity(
-    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
       no_stepper_sleep
     #endif
   );
 
-  thermalManager.manage_heater();
+  #if !defined(CNC_MODE)
+    thermalManager.manage_heater();
+  #endif
 
   #if ENABLED(PRINTCOUNTER)
     print_job_timer.tick();
@@ -574,7 +576,9 @@ void kill(const char* lcd_msg) {
   SERIAL_ERROR_START();
   SERIAL_ERRORLNPGM(MSG_ERR_KILLED);
 
-  thermalManager.disable_all_heaters();
+  #if !defined(CNC_MODE)
+    thermalManager.disable_all_heaters();
+  #endif
   disable_all_steppers();
 
   #if ENABLED(ULTRA_LCD)
@@ -587,7 +591,9 @@ void kill(const char* lcd_msg) {
   cli(); // Stop interrupts
 
   _delay_ms(250); //Wait to ensure all interrupts routines stopped
-  thermalManager.disable_all_heaters(); //turn off heaters again
+  #if !defined(CNC_MODE)
+    thermalManager.disable_all_heaters(); //turn off heaters again
+  #endif
 
   #ifdef ACTION_ON_KILL
     SERIAL_ECHOLNPGM("//action:" ACTION_ON_KILL);
@@ -613,7 +619,9 @@ void kill(const char* lcd_msg) {
  * After a stop the machine may be resumed with M999
  */
 void stop() {
-  thermalManager.disable_all_heaters(); // 'unpause' taken care of in here
+  #if !defined(CNC_MODE)
+    thermalManager.disable_all_heaters(); // 'unpause' taken care of in here
+  #endif
 
   #if ENABLED(PROBING_FANS_OFF)
     if (fans_paused) fans_pause(false); // put things back the way they were
@@ -663,7 +671,7 @@ void setup() {
     MCUCR = 0x80;
   #endif
 
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     runout.setup();
   #endif
 
@@ -744,7 +752,9 @@ void setup() {
   // Vital to init stepper/planner equivalent for current_position
   SYNC_PLAN_POSITION_KINEMATIC();
 
-  thermalManager.init();    // Initialize temperature loop
+  #if !defined(CNC_MODE)
+    thermalManager.init();    // Initialize temperature loop
+  #endif
 
   print_job_timer.init();   // Initial setup of print job timer
 
@@ -910,7 +920,9 @@ void loop() {
         clear_command_queue();
         quickstop_stepper();
         print_job_timer.stop();
-        thermalManager.disable_all_heaters();
+        #if !defined(CNC_MODE)
+          thermalManager.disable_all_heaters();
+        #endif
         #if FAN_COUNT > 0
           for (uint8_t i = 0; i < FAN_COUNT; i++) fanSpeeds[i] = 0;
         #endif

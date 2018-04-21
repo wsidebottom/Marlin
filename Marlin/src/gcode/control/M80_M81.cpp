@@ -94,7 +94,9 @@
  *      This code should ALWAYS be available for EMERGENCY SHUTDOWN!
  */
 void GcodeSuite::M81() {
-  thermalManager.disable_all_heaters();
+  #if !defined(CNC_MODE)
+    thermalManager.disable_all_heaters();
+  #endif
   stepper.finish_and_disable();
 
   #if FAN_COUNT > 0

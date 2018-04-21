@@ -442,7 +442,11 @@
   #define MSG_MOVE_Z                          _UxGT("Move Z")
 #endif
 #ifndef MSG_MOVE_E
-  #define MSG_MOVE_E                          _UxGT("Extruder")
+  #if !defined(CNC_MODE)
+    #define MSG_MOVE_E                        _UxGT("Extruder")
+  #else
+    #define MSG_MOVE_E                        _UxGT("Move A")
+  #endif
 #endif
 #ifndef MSG_MOVE_01MM
   #define MSG_MOVE_01MM                       _UxGT("Move 0.1mm")
@@ -589,7 +593,11 @@
   #endif
 #endif
 #ifndef MSG_ESTEPS
-  #define MSG_ESTEPS                          _UxGT("Esteps/mm")
+  #if !defined(CNC_MODE)
+    #define MSG_ESTEPS                        _UxGT("Esteps/mm")
+  #else
+    #define MSG_ESTEPS                        _UxGT("Asteps/mm")
+  #endif
 #endif
 #ifndef MSG_E1STEPS
   #define MSG_E1STEPS                         _UxGT("E1steps/mm")

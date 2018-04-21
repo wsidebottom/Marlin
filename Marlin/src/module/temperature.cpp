@@ -31,6 +31,8 @@
 #include "planner.h"
 #include "../core/language.h"
 
+#if !defined(CNC_MODE)
+
 #if ENABLED(HEATER_0_USES_MAX6675)
   #include "../libs/private_spi.h"
 #endif
@@ -2367,3 +2369,5 @@ void Temperature::isr() {
   #endif // AUTO_REPORT_TEMPERATURES
 
 #endif // HAS_TEMP_SENSOR
+
+#endif // CNC_MODE

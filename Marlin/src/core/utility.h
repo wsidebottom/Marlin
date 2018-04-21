@@ -25,7 +25,11 @@
 
 #include "../inc/MarlinConfigPre.h"
 
-constexpr char axis_codes[XYZE] = { 'X', 'Y', 'Z', 'E' };
+#if defined(CNC_MODE)
+  constexpr char axis_codes[XYZE] = { 'X', 'Y', 'Z', 'A' };
+#else
+  constexpr char axis_codes[XYZE] = { 'X', 'Y', 'Z', 'E' };
+#endif
 
 void safe_delay(millis_t ms);
 

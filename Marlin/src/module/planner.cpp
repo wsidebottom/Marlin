@@ -129,7 +129,9 @@ uint32_t Planner::min_segment_time_us;
 // Initialized by settings.load()
 float Planner::min_feedrate_mm_s,
       Planner::acceleration,         // Normal acceleration mm/s^2  DEFAULT ACCELERATION for all printing moves. M204 SXXXX
-      Planner::retract_acceleration, // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
+      #if !defined(CNC_MODE)
+        Planner::retract_acceleration, // Retract acceleration mm/s^2 filament pull-back and push-forward while standing still in the other axes M204 TXXXX
+      #endif
       Planner::travel_acceleration,  // Travel acceleration mm/s^2  DEFAULT ACCELERATION for all NON printing moves. M204 MXXXX
       Planner::max_jerk[XYZE],       // The largest speed change requiring no acceleration
       Planner::min_travel_feedrate_mm_s;
@@ -161,7 +163,7 @@ float Planner::min_feedrate_mm_s,
   #endif
 #endif
 
-#if ENABLED(AUTOTEMP)
+#if ENABLED(AUTOTEMP) && !defined(CNC_MODE)
   float Planner::autotemp_max = 250,
         Planner::autotemp_min = 210,
         Planner::autotemp_factor = 0.1;
@@ -981,7 +983,7 @@ void Planner::recalculate() {
   recalculate_trapezoids();
 }
 
-#if ENABLED(AUTOTEMP)
+#if ENABLED(AUTOTEMP) && !defined(CNC_MODE)
 
   void Planner::getHighESpeed() {
     static float oldt = 0;
@@ -1133,7 +1135,7 @@ void Planner::check_axes_activity() {
 
   #endif // FAN_COUNT > 0
 
-  #if ENABLED(AUTOTEMP)
+  #if ENABLED(AUTOTEMP) && !defined(CNC_MODE)
     getHighESpeed();
   #endif
 
@@ -1769,7 +1771,11 @@ void Planner::_buffer_steps(const int32_t (&target)[XYZE]
   uint32_t accel;
   if (!block->steps[A_AXIS] && !block->steps[B_AXIS] && !block->steps[C_AXIS]) {
     // convert to: acceleration steps/sec^2
-    accel = CEIL(retract_acceleration * steps_per_mm);
+    #if !defined(CNC_MODE)
+      accel = CEIL(retract_acceleration * steps_per_mm);
+    #else
+      accel = CEIL(acceleration * steps_per_mm);
+    #endif
     #if ENABLED(LIN_ADVANCE)
       block->use_advance_lead = false;
     #endif
@@ -2246,7 +2252,7 @@ void Planner::refresh_positioning() {
   reset_acceleration_rates();
 }
 
-#if ENABLED(AUTOTEMP)
+#if ENABLED(AUTOTEMP) && !defined(CNC_MODE)
 
   void Planner::autotemp_M104_M109() {
     if ((autotemp_enabled = parser.seen('F'))) autotemp_factor = parser.value_float();

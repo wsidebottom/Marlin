@@ -26,7 +26,7 @@
 
 #include "../inc/MarlinConfigPre.h"
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
+#if ENABLED(FILAMENT_RUNOUT_SENSOR) && !defined(CNC_MODE)
 
 #include "runout.h"
 

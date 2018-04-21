@@ -30,6 +30,8 @@
 #include "thermistor/thermistors.h"
 #include "../inc/MarlinConfig.h"
 
+#if !defined(CNC_MODE)
+
 #if ENABLED(BABYSTEPPING)
   extern bool axis_known_position[XYZ];
 #endif
@@ -646,5 +648,7 @@ class Temperature {
 };
 
 extern Temperature thermalManager;
+
+#endif // CNC_MODE
 
 #endif // TEMPERATURE_H

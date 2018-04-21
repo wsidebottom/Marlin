@@ -23,7 +23,7 @@
 #include "../gcode.h"
 #include "../../module/planner.h"
 
-#if DISABLED(CNC_MODE)
+#if !defined(CNC_MODE)
 
 /**
  * M221: Set extrusion percentage (M221 T0 S95)

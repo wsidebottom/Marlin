@@ -70,7 +70,7 @@ public:
     static float linear_unit_factor, volumetric_unit_factor;
   #endif
 
-  #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
+  #if ENABLED(TEMPERATURE_UNITS_SUPPORT) && !defined(CNC_MODE)
     static TempUnit input_temp_units;
   #endif
 
@@ -246,7 +246,7 @@ public:
 
   #endif
 
-  #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
+  #if ENABLED(TEMPERATURE_UNITS_SUPPORT) && !defined(CNC_MODE)
 
     inline static void set_input_temp_units(TempUnit units) { input_temp_units = units; }
 

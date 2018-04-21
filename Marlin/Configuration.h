@@ -106,15 +106,16 @@
 // You can use an online service to generate a random UUID. (eg http://www.uuidgenerator.net/version4)
 //#define MACHINE_UUID "00000000-0000-0000-0000-000000000000"
 
+// This defines CNC Mill Mode and will disable Heaters and Thermometers
+// It will also change E axis to A axis
+#define CNC_MODE
+
 // @section extruder
 
 // This defines the number of extruders
 // :[1, 2, 3, 4, 5]
+// This value must be 1 for CNC_MODE
 #define EXTRUDERS 1
-
-// This defines CNC Mill Mode and will disable Heaters and Thermometers
-// It will also change E axis to A axis
-#define CNC_MODE
 
 // @section machine
 
@@ -143,177 +144,6 @@
   #endif
 
 #endif
-
-// Use temp sensor 1 as a redundant sensor with sensor 0. If the readings
-// from the two sensors differ too much the print will be aborted.
-//#define TEMP_SENSOR_1_AS_REDUNDANT
-#define MAX_REDUNDANT_TEMP_SENSOR_DIFF 10
-
-// Extruder temperature must be close to target for this long before M109 returns success
-#define TEMP_RESIDENCY_TIME 10  // (seconds)
-#define TEMP_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
-#define TEMP_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
-
-// Bed temperature must be close to target for this long before M190 returns success
-#define TEMP_BED_RESIDENCY_TIME 10  // (seconds)
-#define TEMP_BED_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
-#define TEMP_BED_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
-
-// The minimal temperature defines the temperature below which the heater will not be enabled It is used
-// to check that the wiring to the thermistor is not broken.
-// Otherwise this would lead to the heater being powered on all the time.
-#define HEATER_0_MINTEMP 5
-#define HEATER_1_MINTEMP 5
-#define HEATER_2_MINTEMP 5
-#define HEATER_3_MINTEMP 5
-#define HEATER_4_MINTEMP 5
-#define BED_MINTEMP 5
-
-// When temperature exceeds max temp, your heater will be switched off.
-// This feature exists to protect your hotend from overheating accidentally, but *NOT* from thermistor short/failure!
-// You should use MINTEMP for thermistor short/failure protection.
-#define HEATER_0_MAXTEMP 275
-#define HEATER_1_MAXTEMP 275
-#define HEATER_2_MAXTEMP 275
-#define HEATER_3_MAXTEMP 275
-#define HEATER_4_MAXTEMP 275
-#define BED_MAXTEMP 150
-
-//===========================================================================
-//============================= PID Settings ================================
-//===========================================================================
-// PID Tuning Guide here: http://reprap.org/wiki/PID_Tuning
-
-// Comment the following line to disable PID and enable bang-bang.
-//#define PIDTEMP
-#define BANG_MAX 255     // Limits current to nozzle while in bang-bang mode; 255=full current
-#define PID_MAX BANG_MAX // Limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
-#define PID_K1 0.95      // Smoothing factor within any PID loop
-#if ENABLED(PIDTEMP)
-  //#define PID_AUTOTUNE_MENU // Add PID Autotune to the LCD "Temperature" menu to run M303 and apply the result.
-  //#define PID_DEBUG // Sends debug data to the serial port.
-  //#define PID_OPENLOOP 1 // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX
-  //#define SLOW_PWM_HEATERS // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
-  //#define PID_PARAMS_PER_HOTEND // Uses separate PID parameters for each extruder (useful for mismatched extruders)
-                                  // Set/get with gcode: M301 E[extruder number, 0-2]
-  #define PID_FUNCTIONAL_RANGE 10 // If the temperature difference between the target temperature and the actual temperature
-                                  // is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
-
-  // If you are using a pre-configured hotend then you can use one of the value sets by uncommenting it
-
-  // Ultimaker
-  #define DEFAULT_Kp 22.2
-  #define DEFAULT_Ki 1.08
-  #define DEFAULT_Kd 114
-
-  // MakerGear
-  //#define DEFAULT_Kp 7.0
-  //#define DEFAULT_Ki 0.1
-  //#define DEFAULT_Kd 12
-
-  // Mendel Parts V9 on 12V
-  //#define DEFAULT_Kp 63.0
-  //#define DEFAULT_Ki 2.25
-  //#define DEFAULT_Kd 440
-
-#endif // PIDTEMP
-
-//===========================================================================
-//============================= PID > Bed Temperature Control ===============
-//===========================================================================
-
-/**
- * PID Bed Heating
- *
- * If this option is enabled set PID constants below.
- * If this option is disabled, bang-bang will be used and BED_LIMIT_SWITCHING will enable hysteresis.
- *
- * The PID frequency will be the same as the extruder PWM.
- * If PID_dT is the default, and correct for the hardware/configuration, that means 7.689Hz,
- * which is fine for driving a square wave into a resistive load and does not significantly
- * impact FET heating. This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W
- * heater. If your configuration is significantly different than this and you don't understand
- * the issues involved, don't use bed PID until someone else verifies that your hardware works.
- */
-//#define PIDTEMPBED
-
-//#define BED_LIMIT_SWITCHING
-
-/**
- * Max Bed Power
- * Applies to all forms of bed control (PID, bang-bang, and bang-bang with hysteresis).
- * When set to any value below 255, enables a form of PWM to the bed that acts like a divider
- * so don't use it unless you are OK with PWM on your bed. (See the comment on enabling PIDTEMPBED)
- */
-#define MAX_BED_POWER 255 // limits duty cycle to bed; 255=full current
-
-#if ENABLED(PIDTEMPBED)
-
-  //#define PID_BED_DEBUG // Sends debug data to the serial port.
-
-  //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
-  //from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
-  #define DEFAULT_bedKp 10.00
-  #define DEFAULT_bedKi .023
-  #define DEFAULT_bedKd 305.4
-
-  //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
-  //from pidautotune
-  //#define DEFAULT_bedKp 97.1
-  //#define DEFAULT_bedKi 1.41
-  //#define DEFAULT_bedKd 1675.16
-
-  // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
-#endif // PIDTEMPBED
-
-// @section extruder
-
-// This option prevents extrusion if the temperature is below EXTRUDE_MINTEMP.
-// It also enables the M302 command to set the minimum extrusion temperature
-// or to allow moving the extruder regardless of the hotend temperature.
-// *** IT IS HIGHLY RECOMMENDED TO LEAVE THIS OPTION ENABLED! ***
-//#define PREVENT_COLD_EXTRUSION
-#define EXTRUDE_MINTEMP 170
-
-// This option prevents a single extrusion longer than EXTRUDE_MAXLENGTH.
-// Note that for Bowden Extruders a too-small value here may prevent loading.
-//#define PREVENT_LENGTHY_EXTRUDE
-#define EXTRUDE_MAXLENGTH 200
-
-//===========================================================================
-//======================== Thermal Runaway Protection =======================
-//===========================================================================
-
-/**
- * Thermal Protection provides additional protection to your printer from damage
- * and fire. Marlin always includes safe min and max temperature ranges which
- * protect against a broken or disconnected thermistor wire.
- *
- * The issue: If a thermistor falls out, it will report the much lower
- * temperature of the air in the room, and the the firmware will keep
- * the heater on.
- *
- * If you get "Thermal Runaway" or "Heating failed" errors the
- * details can be tuned in Configuration_adv.h
- */
-
-//#define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
-//#define THERMAL_PROTECTION_BED     // Enable thermal protection for the heated bed
-
-//===========================================================================
-//============================= Mechanical Settings =========================
-//===========================================================================
-
-// @section machine
-
-// Uncomment one of these options to enable CoreXY, CoreXZ, or CoreYZ kinematics
-// either in the usual order or reversed
-//#define COREXY
-//#define COREXZ
-//#define COREYZ
-//#define COREYX
-//#define COREZX
-//#define COREZY
 
 //===========================================================================
 //============================== Endstop Settings ===========================
@@ -386,14 +216,14 @@
 /**
  * Default Axis Steps Per Unit (steps/mm)
  * Override with M92
- *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
+ *                                      X, Y, Z, A
  */
 #define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 80, 4000, 500 }
 
 /**
  * Default Max Feed Rate (mm/s)
  * Override with M203
- *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
+ *                                      X, Y, Z, A
  */
 #define DEFAULT_MAX_FEEDRATE          { 300, 300, 5, 25 }
 
@@ -401,7 +231,7 @@
  * Default Max Acceleration (change/s) change = mm/s
  * (Maximum start speed for accelerated moves)
  * Override with M201
- *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
+ *                                      X, Y, Z, A
  */
 #define DEFAULT_MAX_ACCELERATION      { 3000, 3000, 100, 10000 }
 
@@ -410,16 +240,14 @@
  * Override with M204
  *
  *   M204 P    Acceleration
- *   M204 R    Retract Acceleration
  *   M204 T    Travel Acceleration
  */
-#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E acceleration for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  3000    // E acceleration for retracts
-#define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z acceleration for travel (non printing) moves
+#define DEFAULT_ACCELERATION          3000    // X, Y, Z and A acceleration for printing moves
+#define DEFAULT_TRAVEL_ACCELERATION   3000    // X, Y, Z and A acceleration for travel (non printing) moves
 
 /**
  * Default Jerk (mm/s)
- * Override with M205 X Y Z E
+ * Override with M205 X Y Z A
  *
  * "Jerk" specifies the minimum speed change that requires acceleration.
  * When changing speed and direction, if the difference is less than the
@@ -519,7 +347,6 @@
  * These options are most useful for the BLTouch probe, but may also improve
  * readings with inductive probes and piezo sensors.
  */
-//#define PROBING_HEATERS_OFF       // Turn heaters off when probing
 //#define PROBING_FANS_OFF          // Turn fans off when probing
 //#define DELAY_BEFORE_PROBING 200  // (ms) To prevent vibrations from triggering piezo sensors
 
@@ -606,20 +433,16 @@
 #define X_ENABLE_ON 0
 #define Y_ENABLE_ON 0
 #define Z_ENABLE_ON 0
-#define E_ENABLE_ON 0 // For all extruders
+#define E_ENABLE_ON 0
 
 // Disables axis stepper immediately when it's not being used.
 // WARNING: When motors turn off there is a chance of losing position accuracy!
 #define DISABLE_X false
 #define DISABLE_Y false
 #define DISABLE_Z false
+#define DISABLE_E false // For all extruders
 // Warn on display about possibly reduced accuracy
 //#define DISABLE_REDUCED_ACCURACY_WARNING
-
-// @section extruder
-
-#define DISABLE_E false // For all extruders
-#define DISABLE_INACTIVE_EXTRUDER true // Keep only the active extruder enabled.
 
 // @section machine
 
@@ -627,18 +450,10 @@
 #define INVERT_X_DIR false
 #define INVERT_Y_DIR true
 #define INVERT_Z_DIR false
+#define INVERT_E0_DIR false
 
 // Enable this option for Toshiba stepper drivers
 //#define CONFIG_STEPPERS_TOSHIBA
-
-// @section extruder
-
-// For direct drive extruder v9 set to true, for geared extruder set to false.
-#define INVERT_E0_DIR false
-#define INVERT_E1_DIR false
-#define INVERT_E2_DIR false
-#define INVERT_E3_DIR false
-#define INVERT_E4_DIR false
 
 // @section homing
 

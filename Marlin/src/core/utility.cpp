@@ -29,10 +29,14 @@ void safe_delay(millis_t ms) {
   while (ms > 50) {
     ms -= 50;
     delay(50);
-    thermalManager.manage_heater();
+    #if !defined(CNC_MODE)
+      thermalManager.manage_heater();
+    #endif
   }
   delay(ms);
-  thermalManager.manage_heater(); // This keeps us safe if too many small safe_delay() calls are made
+  #if !defined(CNC_MODE)
+    thermalManager.manage_heater(); // This keeps us safe if too many small safe_delay() calls are made
+  #endif
 }
 
 #if ENABLED(EEPROM_SETTINGS)
@@ -272,6 +276,8 @@ void safe_delay(millis_t ms) {
       SERIAL_ECHOLNPGM("SCARA");
     #elif IS_CORE
       SERIAL_ECHOLNPGM("Core");
+    #elif defined(CNC_MODE)
+      SERIAL_ECHOLNPGM("CNC")
     #else
       SERIAL_ECHOLNPGM("Cartesian");
     #endif

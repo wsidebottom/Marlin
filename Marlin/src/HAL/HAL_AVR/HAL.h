@@ -161,7 +161,11 @@ extern "C" {
 #define HAL_STEP_TIMER_ISR ISR(TIMER1_COMPA_vect)
 #define HAL_TEMP_TIMER_ISR ISR(TIMER0_COMPB_vect)
 
-#define HAL_ENABLE_ISRs() do { cli(); if (thermalManager.in_temp_isr) DISABLE_TEMPERATURE_INTERRUPT(); else ENABLE_TEMPERATURE_INTERRUPT(); ENABLE_STEPPER_DRIVER_INTERRUPT(); } while(0)
+#if !defined(CNC_MODE)
+  #define HAL_ENABLE_ISRs() do { cli(); if (thermalManager.in_temp_isr) DISABLE_TEMPERATURE_INTERRUPT(); else ENABLE_TEMPERATURE_INTERRUPT(); ENABLE_STEPPER_DRIVER_INTERRUPT(); } while(0)
+#else
+  #define HAL_ENABLE_ISRs() do { cli(); ENABLE_STEPPER_DRIVER_INTERRUPT(); } while(0)
+#endif
 
 // ADC
 #ifdef DIDR2

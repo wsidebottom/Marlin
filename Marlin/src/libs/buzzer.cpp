@@ -42,7 +42,9 @@ Buzzer buzzer;
 void Buzzer::tone(const uint16_t duration, const uint16_t frequency/*=0*/) {
   while (buffer.isFull()) {
     tick();
-    thermalManager.manage_heater();
+    #if !defined(CNC_MODE)
+      thermalManager.manage_heater();
+    #endif
   }
   tone_t tone = { duration, frequency };
   buffer.enqueue(tone);

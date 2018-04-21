@@ -35,7 +35,7 @@
   #include "../../feature/leds/leds.h"
 #endif
 
-#if DISABLED(CNC_MODE)
+#if !defined(CNC_MODE)
 /**
  * M104: Set hot end temperature
  */

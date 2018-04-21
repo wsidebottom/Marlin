@@ -170,9 +170,9 @@ void clean_up_after_endstop_or_probe_move();
       || ENABLED(Z_PROBE_SLED)                                                     \
       || HAS_PROBING_PROCEDURE                                                     \
       || HOTENDS > 1                                                               \
-      || (ENABLED(NOZZLE_CLEAN_FEATURE)  && DISABLED(CNC_MODE))                    \
-      || (ENABLED(NOZZLE_PARK_FEATURE) && DISABLED(CNC_MODE))                      \
-      || (ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(HOME_BEFORE_FILAMENT_CHANGE)  && DISABLED(CNC_MODE)) \
+      || (ENABLED(NOZZLE_CLEAN_FEATURE)  && !defined(CNC_MODE))                    \
+      || (ENABLED(NOZZLE_PARK_FEATURE) && !defined(CNC_MODE))                      \
+      || (ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(HOME_BEFORE_FILAMENT_CHANGE)  && !defined(CNC_MODE)) \
       || HAS_M206_COMMAND                                                          \
     ) || ENABLED(NO_MOTION_BEFORE_HOMING)
 
@@ -226,9 +226,15 @@ void homeaxis(const AxisEnum axis);
 #define LOGICAL_X_POSITION(POS) NATIVE_TO_LOGICAL(POS, X_AXIS)
 #define LOGICAL_Y_POSITION(POS) NATIVE_TO_LOGICAL(POS, Y_AXIS)
 #define LOGICAL_Z_POSITION(POS) NATIVE_TO_LOGICAL(POS, Z_AXIS)
+
 #define RAW_X_POSITION(POS)     LOGICAL_TO_NATIVE(POS, X_AXIS)
 #define RAW_Y_POSITION(POS)     LOGICAL_TO_NATIVE(POS, Y_AXIS)
 #define RAW_Z_POSITION(POS)     LOGICAL_TO_NATIVE(POS, Z_AXIS)
+
+#if defined(CNC_MODE)
+  #define LOGICAL_E_POSITION(POS) NATIVE_TO_LOGICAL(POS, E_AXIS)
+  #define RAW_E_POSITION(POS)     LOGICAL_TO_NATIVE(POS, E_AXIS)
+#endif
 
 /**
  * position_is_reachable family of functions

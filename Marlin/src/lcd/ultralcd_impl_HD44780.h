@@ -475,6 +475,7 @@ FORCE_INLINE void _draw_axis_label(const AxisEnum axis, const char* const pstr, 
   }
 }
 
+#if !defined(CNC_MODE)
 FORCE_INLINE void _draw_heater_status(const int8_t heater, const char prefix, const bool blink) {
   #if TEMP_SENSOR_BED
     const bool isBed = heater < 0;
@@ -516,6 +517,7 @@ FORCE_INLINE void _draw_heater_status(const int8_t heater, const char prefix, co
     if (t2 < 10) lcd_put_wchar(' ');
   }
 }
+#endif // CNC_MODE
 
 #if ENABLED(LCD_PROGRESS_BAR)
 
@@ -570,7 +572,8 @@ static void lcd_implementation_status_screen() {
 
   lcd_moveto(0, 0);
 
-  #if LCD_WIDTH < 20
+  #if !defined(CNC_MODE)
+  #if (LCD_WIDTH < 20) 
 
     //
     // Hotend 0 Temperature
@@ -685,6 +688,53 @@ static void lcd_implementation_status_screen() {
     #endif
 
   #endif // LCD_HEIGHT > 2
+  #else // CNC_MODE
+
+  //
+  // Line 1
+  //
+
+    #if LCD_WIDTH < 20
+
+      #if ENABLED(SDSUPPORT)
+        lcd_moveto(0, 2);
+        lcd_put_u8str_rom(PSTR("SD"));
+        if (IS_SD_PRINTING)
+          lcd_put_u8str(itostr3(card.percentDone()));
+        else
+          lcd_put_u8str_rom(PSTR("---"));
+          lcd_put_wchar('%');
+      #endif // SDSUPPORT
+
+    #else // LCD_WIDTH >= 20
+
+      // Before homing the axis letters are blinking 'X' <-> '?'.
+      // When axis is homed but axis_known_position is false the axis letters are blinking 'X' <-> ' '.
+      // When everything is ok you see a constant 'X'.
+
+      _draw_axis_label(X_AXIS, PSTR(MSG_X), blink);
+      lcd_put_u8str(ftostr4sign(LOGICAL_X_POSITION(current_position[X_AXIS])));
+
+      lcd_put_wchar(' ');
+
+      _draw_axis_label(Y_AXIS, PSTR(MSG_Y), blink);
+      lcd_put_u8str(ftostr4sign(LOGICAL_Y_POSITION(current_position[Y_AXIS])));
+
+    #endif // LCD_WIDTH >= 20
+
+    lcd_moveto(LCD_WIDTH - 8, 1);
+    _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
+    lcd_put_u8str(ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(current_position[Z_AXIS]))));
+
+    //
+    // Line 2
+    //
+
+    lcd_moveto(0, 1);
+    _draw_axis_label(E_AXIS, PSTR(MSG_E), blink);
+    lcd_put_u8str(ftostr52sp(FIXFLOAT(LOGICAL_E_POSITION(current_position[E_AXIS]))));
+
+  #endif // CNC_MODE
 
   //
   // Line 3
@@ -792,7 +842,7 @@ static void lcd_implementation_status_screen() {
 
 #if ENABLED(ULTIPANEL)
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
 
     static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t extruder=active_extruder) {
       if (row < LCD_HEIGHT) {

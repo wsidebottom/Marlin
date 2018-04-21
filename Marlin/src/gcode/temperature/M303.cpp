@@ -23,7 +23,7 @@
 #include "../gcode.h"
 #include "../../module/temperature.h"
 
-#if DISABLED(CNC_MODE)
+#if !defined(CNC_MODE)
 /**
  * M303: PID relay autotune
  *

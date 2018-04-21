@@ -33,7 +33,7 @@
 #include "../core/language.h"
 #include "../gcode/queue.h"
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE) && !defined(CNC_MODE)
   #include "../feature/pause.h"
 #endif
 
@@ -359,7 +359,7 @@ void CardReader::stopSDPrint(
     const bool re_sort/*=false*/
   #endif
 ) {
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && !defined(CNC_MODE)
     did_pause_print = 0;
   #endif
   sdprinting = false;

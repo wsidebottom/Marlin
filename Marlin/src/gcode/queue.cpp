@@ -299,7 +299,12 @@ inline void get_serial_commands() {
         serial_comment_mode[i] = false;                   // end of line == end of comment
 
         // Skip empty lines and comments
-        if (!serial_count[i]) { thermalManager.manage_heater(); continue; }
+        if (!serial_count[i]) {
+          #if !defined(CNC_MODE)
+            thermalManager.manage_heater();
+          #endif
+          continue;
+        }
 
         serial_line_buffer[i][serial_count[i]] = 0;       // Terminate string
         serial_count[i] = 0;                              // Reset buffer
@@ -466,7 +471,12 @@ inline void get_serial_commands() {
         sd_comment_mode = false; // for new command
 
         // Skip empty lines and comments
-        if (!sd_count) { thermalManager.manage_heater(); continue; }
+        if (!sd_count) {
+          #if !defined(CNC_MODE)
+            thermalManager.manage_heater();
+          #endif
+          continue;
+        }
 
         command_queue[cmd_queue_index_w][sd_count] = '\0'; // terminate string
         sd_count = 0; // clear sd line buffer

@@ -27,7 +27,7 @@
 
 #include "../inc/MarlinConfig.h"
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE) && !defined(CNC_MODE)
 
 #include "../Marlin.h"
 #include "../gcode/gcode.h"
@@ -41,7 +41,7 @@
   #include "../feature/fwretract.h"
 #endif
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
+#if ENABLED(FILAMENT_RUNOUT_SENSOR) && !defined(CNC_MODE)
   #include "../feature/runout.h"
 #endif
 
@@ -540,7 +540,7 @@ void resume_print(const float &slow_load_length/*=0*/, const float &fast_load_le
   // Set extruder to saved position
   planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = resume_position[E_AXIS]));
 
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR) && !defined(CNC_MODE)
     runout.reset();
   #endif
 

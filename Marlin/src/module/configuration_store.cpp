@@ -80,11 +80,11 @@
   #define TMC_GET_PWMTHRS(P,Q) _tmc_thrs(stepper##Q.microsteps(), stepper##Q.TPWMTHRS(), planner.axis_steps_per_mm[P##_AXIS])
 #endif
 
-#if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
+#if ENABLED(FWRETRACT)
   #include "../feature/fwretract.h"
 #endif
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
   #include "../feature/pause.h"
 #endif
 
@@ -112,7 +112,9 @@ typedef struct SettingsDataStruct {
             planner_max_feedrate_mm_s[XYZE_N];          // M203 XYZE  planner.max_feedrate_mm_s[XYZE_N]
   uint32_t  planner_max_acceleration_mm_per_s2[XYZE_N]; // M201 XYZE  planner.max_acceleration_mm_per_s2[XYZE_N]
   float     planner_acceleration,                       // M204 P     planner.acceleration
-            planner_retract_acceleration,               // M204 R     planner.retract_acceleration
+            #if !defined(CNC_MODE)
+              planner_retract_acceleration,             // M204 R     planner.retract_acceleration
+            #endif
             planner_travel_acceleration,                // M204 T     planner.travel_acceleration
             planner_min_feedrate_mm_s,                  // M205 S     planner.min_feedrate_mm_s
             planner_min_travel_feedrate_mm_s;           // M205 T     planner.min_travel_feedrate_mm_s
@@ -402,7 +404,11 @@ void MarlinSettings::postprocess() {
     EEPROM_WRITE(planner.max_acceleration_mm_per_s2);
 
     EEPROM_WRITE(planner.acceleration);
-    EEPROM_WRITE(planner.retract_acceleration);
+    #if !defined(CNC_MODE)
+      EEPROM_WRITE(planner.retract_acceleration);
+    #else
+      EEPROM_WRITE(dummy);
+    #endif
     EEPROM_WRITE(planner.travel_acceleration);
     EEPROM_WRITE(planner.min_feedrate_mm_s);
     EEPROM_WRITE(planner.min_travel_feedrate_mm_s);
@@ -650,7 +656,7 @@ void MarlinSettings::postprocess() {
     #else
 
       const bool volumetric_enabled = false;
-      #if ENABLED(CNC_MODE)
+      #if defined(CNC_MODE)
         dummy = 0;
       #else
         dummy = DEFAULT_NOMINAL_FILAMENT_DIA;
@@ -882,7 +888,7 @@ void MarlinSettings::postprocess() {
 
     _FIELD_TEST(filament_change_unload_length);
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
       for (uint8_t q = 0; q < MAX_EXTRUDERS; q++) {
         if (q < COUNT(filament_change_unload_length)) dummy = filament_change_unload_length[q];
         EEPROM_WRITE(dummy);
@@ -995,7 +1001,11 @@ void MarlinSettings::postprocess() {
       }
 
       EEPROM_READ(planner.acceleration);
-      EEPROM_READ(planner.retract_acceleration);
+      #if !defined(CNC_MODE)
+        EEPROM_READ(planner.retract_acceleration);
+      #else
+        EEPROM_READ(dummy);
+      #endif
       EEPROM_READ(planner.travel_acceleration);
       EEPROM_READ(planner.min_feedrate_mm_s);
       EEPROM_READ(planner.min_travel_feedrate_mm_s);
@@ -1473,7 +1483,7 @@ void MarlinSettings::postprocess() {
 
       _FIELD_TEST(filament_change_unload_length);
 
-      #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+      #if ENABLED(ADVANCED_PAUSE_FEATURE)
         for (uint8_t q = 0; q < MAX_EXTRUDERS; q++) {
           EEPROM_READ(dummy);
           if (!validating && q < COUNT(filament_change_unload_length)) filament_change_unload_length[q] = dummy;
@@ -1707,7 +1717,9 @@ void MarlinSettings::reset(PORTARG_SOLO) {
   }
 
   planner.acceleration = DEFAULT_ACCELERATION;
-  planner.retract_acceleration = DEFAULT_RETRACT_ACCELERATION;
+  #if !defined(CNC_MODE)
+    planner.retract_acceleration = DEFAULT_RETRACT_ACCELERATION;
+  #endif
   planner.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
   planner.min_feedrate_mm_s = DEFAULT_MINIMUMFEEDRATE;
   planner.min_travel_feedrate_mm_s = DEFAULT_MINTRAVELFEEDRATE;
@@ -1879,7 +1891,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
     #endif
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
     for (uint8_t e = 0; e < E_STEPPERS; e++) {
       filament_change_unload_length[e] = FILAMENT_CHANGE_UNLOAD_LENGTH;
       filament_change_load_length[e] = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
@@ -1908,7 +1920,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
     #endif
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
     void say_M603(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M603 "); }
   #endif
 
@@ -2066,16 +2078,26 @@ void MarlinSettings::reset(PORTARG_SOLO) {
 
     if (!forReplay) {
       CONFIG_ECHO_START;
-      SERIAL_ECHOLNPGM_P(port, "Acceleration (units/s2): P<print_accel> R<retract_accel> T<travel_accel>");
+      #if !defined(CNC_MODE)
+        SERIAL_ECHOLNPGM_P(port, "Acceleration (units/s2): P<print_accel> R<retract_accel> T<travel_accel>");
+      #else
+        SERIAL_ECHOLNPGM_P(port, "Acceleration (units/s2): P<print_accel> T<travel_accel>");
+      #endif
     }
     CONFIG_ECHO_START;
     SERIAL_ECHOPAIR_P(port, "  M204 P", LINEAR_UNIT(planner.acceleration));
+    #if !defined(CNC_MODE)
     SERIAL_ECHOPAIR_P(port, " R", LINEAR_UNIT(planner.retract_acceleration));
+    #endif
     SERIAL_ECHOLNPAIR_P(port, " T", LINEAR_UNIT(planner.travel_acceleration));
 
     if (!forReplay) {
       CONFIG_ECHO_START;
-      SERIAL_ECHOLNPGM_P(port, "Advanced: S<min_feedrate> T<min_travel_feedrate> B<min_segment_time_us> X<max_xy_jerk> Z<max_z_jerk> E<max_e_jerk>");
+      #if !defined(CNC_MODE)
+        SERIAL_ECHOLNPGM_P(port, "Advanced: S<min_feedrate> T<min_travel_feedrate> B<min_segment_time_us> X<max_xy_jerk> Z<max_z_jerk> E<max_e_jerk>");
+      #else
+        SERIAL_ECHOLNPGM_P(port, "Advanced: S<min_feedrate> T<min_travel_feedrate> B<min_segment_time_us> X<max_xy_jerk> Z<max_z_jerk> A<max_a_jerk>");
+      #endif
     }
     CONFIG_ECHO_START;
     SERIAL_ECHOPAIR_P(port, "  M205 S", LINEAR_UNIT(planner.min_feedrate_mm_s));
@@ -2084,7 +2106,11 @@ void MarlinSettings::reset(PORTARG_SOLO) {
     SERIAL_ECHOPAIR_P(port, " X", LINEAR_UNIT(planner.max_jerk[X_AXIS]));
     SERIAL_ECHOPAIR_P(port, " Y", LINEAR_UNIT(planner.max_jerk[Y_AXIS]));
     SERIAL_ECHOPAIR_P(port, " Z", LINEAR_UNIT(planner.max_jerk[Z_AXIS]));
-    SERIAL_ECHOLNPAIR_P(port, " E", LINEAR_UNIT(planner.max_jerk[E_AXIS]));
+    #if !defined(CNC_MODE)
+      SERIAL_ECHOLNPAIR_P(port, " E", LINEAR_UNIT(planner.max_jerk[E_AXIS]));
+    #else
+      SERIAL_ECHOLNPAIR_P(port, " A", LINEAR_UNIT(planner.max_jerk[E_AXIS]));
+    #endif
 
     #if HAS_M206_COMMAND
       if (!forReplay) {
@@ -2562,7 +2588,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
     /**
      * Advanced Pause filament load & unload lengths
      */
-    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
       if (!forReplay) {
         CONFIG_ECHO_START;
         SERIAL_ECHOLNPGM_P(port, "Filament load/unload lengths:");

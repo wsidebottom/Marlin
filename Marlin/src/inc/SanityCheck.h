@@ -468,7 +468,7 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE && Y_MAX_LENGTH >= Y_BED_SIZE,
 /**
  * Filament Runout needs one or more pins and either SD Support or Auto print start detection
  */
-#if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
+#if ENABLED(FILAMENT_RUNOUT_SENSOR)
   #if !PIN_EXISTS(FIL_RUNOUT)
     #error "FILAMENT_RUNOUT_SENSOR requires FIL_RUNOUT_PIN."
   #elif NUM_RUNOUT_SENSORS > E_STEPPERS
@@ -491,7 +491,7 @@ static_assert(X_MAX_LENGTH >= X_BED_SIZE && Y_MAX_LENGTH >= Y_BED_SIZE,
 /**
  * Advanced Pause
  */
-#if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
   #if !HAS_RESUME_CONTINUE
     #error "ADVANCED_PAUSE_FEATURE currently requires an LCD controller or EMERGENCY_PARSER."
   #elif ENABLED(EXTRUDER_RUNOUT_PREVENT)
@@ -1706,7 +1706,7 @@ static_assert(COUNT(sanity_arr_3) <= XYZE_N, "DEFAULT_MAX_ACCELERATION has too m
 #endif
 
 // CNC Mode Checks
-#if ENABLED(CNC_MODE)
+#if defined(CNC_MODE)
   #if EXTRUDERS != 1
     #error "EXTRUDERS is not able to be set to anything other than 1 in CNC Mode"
   #endif
@@ -1717,12 +1717,28 @@ static_assert(COUNT(sanity_arr_3) <= XYZE_N, "DEFAULT_MAX_ACCELERATION has too m
   #if defined(TEMP_SENSOR_0) || defined(TEMP_SENSOR_1) || defined(TEMP_SENSOR_2)          \
    || defined(TEMP_SENSOR_3) || defined(TEMP_SENSOR_4) || defined(TEMP_SENSOR_BED)        \
    || defined(TEMP_SENSOR_CHAMBER)
-    #warning "TEMP_SENSOR_x values are ignored in CNC Mode"
+    #warning "TEMP_SENSOR_x values are ignored in CNC Mode."
   #endif
   #if ENABLED(BABYSTEPPING)
-    #error "BABYSTEPPING is not compatible with CNC Mode"
+    #error "BABYSTEPPING is not compatible with CNC Mode."
   #endif
-  // ADVANCED_PAUSE_FEATURE FWRETRACT
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) || ENABLED(FWRETRACT) || ENABLED(PREVENT_COLD_EXTRUSION) \
+   || ENABLED(PREVENT_LENGTHY_EXTRUDE) || ENABLED(THERMAL_PROTECTION_HOTENDS) || ENABLED(THERMAL_PROTECTION_BED)
+    #error "ADVANCED_PAUSE_FEATURE, FWRETRACT, PREVENT_COLD_EXTRUSION, PREVENT_LENGTHY_EXTRUDE, THERMAL_PROTECTION_HOTENDS or THERMAL_PROTECTION_BED are not compatible with CNC Mode"
+  #endif
+  #if defined(COREXY) || defined(COREXZ) || defined(COREYZ) || defined(COREYX) || defined(COREZX) \
+   || defined(COREZY) || defined(DELTA) || defined(MORGAN_SCARA) || defined(MAKERARM_SCARA)
+    #error "CORExx, DELTA or SCARA variants are not compatible with CNC Mode."
+  #endif
+  #if defined(DEFAULT_RETRACT_ACCELERATION)
+    #warning "DEFAULT_RETRACT_ACCELERATION is ignored with CNC Mode."
+  #endif
+  #if defined(PROBING_HEATERS_OFF) || ENABLED(DISABLE_INACTIVE_EXTRUDER)
+    #warning "PROBING_HEATERS_OFF is ignored with CNC Mode"
+  #endif
+  #if DISABLED(NO_VOLUMETRICS)
+    #error "Volumetric measurements are not supported in CNC Mode."
+  #endif
 #endif
 
 #endif // _SANITYCHECK_H_

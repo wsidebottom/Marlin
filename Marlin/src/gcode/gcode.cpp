@@ -117,7 +117,7 @@ void GcodeSuite::get_destination_from_command() {
   #endif
 
   // Get ABCDHI mixing factors
-  #if ENABLED(MIXING_EXTRUDER) && ENABLED(DIRECT_MIXING_IN_G1)
+  #if ENABLED(MIXING_EXTRUDER) && ENABLED(DIRECT_MIXING_IN_G1) && !defined(CNC_MODE)
     gcode_get_mix();
   #endif
 }
@@ -350,7 +350,7 @@ void GcodeSuite::process_parsed_command(
         case 100: M100(); break;                                  // M100: Free Memory Report
       #endif
 
-      #if DISABLED(CNC_MODE)
+      #if !defined(CNC_MODE)
         case 104: M104(); break;                                    // M104: Set hot end temperature
         case 109: M109(); break;                                    // M109: Wait for hotend temperature to reach target
       #endif
@@ -368,16 +368,16 @@ void GcodeSuite::process_parsed_command(
         case 113: M113(); break;                                  // M113: Set Host Keepalive interval
       #endif
 
-      #if HAS_HEATER_BED && HAS_TEMP_BED && DISABLED(CNC_MODE)
+      #if HAS_HEATER_BED && HAS_TEMP_BED && !defined(CNC_MODE)
         case 140: M140(); break;                                  // M140: Set bed temperature
         case 190: M190(); break;                                  // M190: Wait for bed temperature to reach target
       #endif
 
-      #if DISABLED(CNC_MODE)
+      #if !defined(CNC_MODE)
         case 105: M105(); KEEPALIVE_STATE(NOT_BUSY); return;        // M105: Report Temperatures (and say "ok")
       #endif
 
-      #if ENABLED(AUTO_REPORT_TEMPERATURES) && HAS_TEMP_SENSOR && DISABLED(CNC_MODE)
+      #if ENABLED(AUTO_REPORT_TEMPERATURES) && HAS_TEMP_SENSOR && !defined(CNC_MODE)
         case 155: M155(); break;                                  // M155: Set temperature auto-report interval
       #endif
 
@@ -386,7 +386,7 @@ void GcodeSuite::process_parsed_command(
         case 107: M107(); break;                                  // M107: Fan Off
       #endif
 
-      #if ENABLED(PARK_HEAD_ON_PAUSE) && DISABLED(CNC_MODE)
+      #if ENABLED(PARK_HEAD_ON_PAUSE) && !defined(CNC_MODE)
         case 125: M125(); break;                                  // M125: Store current position and move to filament change position
       #endif
 
@@ -422,11 +422,11 @@ void GcodeSuite::process_parsed_command(
       case 120: M120(); break;                                    // M120: Enable endstops
       case 121: M121(); break;                                    // M121: Disable endstops
 
-      #if ENABLED(ULTIPANEL) && DISABLED(CNC_MODE)
+      #if ENABLED(ULTIPANEL) && !defined(CNC_MODE)
         case 145: M145(); break;                                  // M145: Set material heatup parameters
       #endif
 
-      #if ENABLED(TEMPERATURE_UNITS_SUPPORT) && DISABLED(CNC_MODE)
+      #if ENABLED(TEMPERATURE_UNITS_SUPPORT) && !defined(CNC_MODE)
         case 149: M149(); break;                                  // M149: Set temperature units
       #endif
 
@@ -434,7 +434,7 @@ void GcodeSuite::process_parsed_command(
         case 150: M150(); break;                                  // M150: Set Status LED Color
       #endif
 
-      #if ENABLED(MIXING_EXTRUDER) && DISABLED(CNC_MODE)
+      #if ENABLED(MIXING_EXTRUDER) && !defined(CNC_MODE)
         case 163: M163(); break;                                  // M163: Set a component weight for mixing extruder
         #if MIXING_VIRTUAL_TOOLS > 1
           case 164: M164(); break;                                // M164: Save current mix as a virtual extruder
@@ -448,7 +448,7 @@ void GcodeSuite::process_parsed_command(
         case 200: M200(); break;                                  // M200: Set filament diameter, E to cubic units
       #endif
 
-      #if DISABLED(CNC_MODE)
+      #if !defined(CNC_MODE)
         case 201: M201(); break;                                    // M201: Set max acceleration for print moves (units/s^2)
       #endif
 
@@ -464,7 +464,7 @@ void GcodeSuite::process_parsed_command(
         case 206: M206(); break;                                  // M206: Set home offsets
       #endif
 
-      #if ENABLED(DELTA) && DISABLED(CNC_MODE)
+      #if ENABLED(DELTA) && !defined(CNC_MODE)
         case 665: M665(); break;                                  // M665: Set delta configurations
       #endif
 
@@ -472,7 +472,7 @@ void GcodeSuite::process_parsed_command(
         case 666: M666(); break;                                  // M666: Set delta or dual endstop adjustment
       #endif
 
-      #if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
+      #if ENABLED(FWRETRACT) && !defined(CNC_MODE)
         case 207: M207(); break;                                  // M207: Set Retract Length, Feedrate, and Z lift
         case 208: M208(); break;                                  // M208: Set Recover (unretract) Additional Length and Feedrate
         case 209:
@@ -486,7 +486,7 @@ void GcodeSuite::process_parsed_command(
         case 218: M218(); break;                                  // M218: Set a tool offset
       #endif
 
-      #if DISABLED(CNC_MODE)
+      #if !defined(CNC_MODE)
         case 220: M220(); break;                                    // M220: Set Feedrate Percentage: S<percent> ("FR" on your LCD)
         case 221: M221(); break;                                    // M221: Set Flow Percentage
         case 226: M226(); break;                                    // M226: Wait until a pin reaches a state
@@ -496,7 +496,7 @@ void GcodeSuite::process_parsed_command(
         case 280: M280(); break;                                  // M280: Set servo position absolute
       #endif
 
-      #if ENABLED(BABYSTEPPING) && DISABLED(CNC_MODE)
+      #if ENABLED(BABYSTEPPING) && !defined(CNC_MODE)
         case 290: M290(); break;                                  // M290: Babystepping
       #endif
 
@@ -504,11 +504,11 @@ void GcodeSuite::process_parsed_command(
         case 300: M300(); break;                                  // M300: Play beep tone
       #endif
 
-      #if ENABLED(PIDTEMP) && DISABLED(CNC_MODE)
+      #if ENABLED(PIDTEMP) && !defined(CNC_MODE)
         case 301: M301(); break;                                  // M301: Set hotend PID parameters
       #endif
 
-      #if ENABLED(PIDTEMPBED) && DISABLED(CNC_MODE)
+      #if ENABLED(PIDTEMPBED) && !defined(CNC_MODE)
         case 304: M304(); break;                                  // M304: Set bed PID parameters
       #endif
 
@@ -525,15 +525,15 @@ void GcodeSuite::process_parsed_command(
         case 261: M261(); break;                                  // M261: Request data from an i2c slave
       #endif
 
-      #if ENABLED(PREVENT_COLD_EXTRUSION) && DISABLED(CNC_MODE)
+      #if ENABLED(PREVENT_COLD_EXTRUSION) && !defined(CNC_MODE)
         case 302: M302(); break;                                  // M302: Allow cold extrudes (set the minimum extrude temperature)
       #endif
 
-      #if DISABLED(CNC_MODE)
+      #if !defined(CNC_MODE)
         case 303: M303(); break;                                    // M303: PID autotune
       #endif
 
-      #if ENABLED(MORGAN_SCARA) && DISABLED(CNC_MODE)
+      #if ENABLED(MORGAN_SCARA) && !defined(CNC_MODE)
         case 360: if (M360()) return; break;                      // M360: SCARA Theta pos1
         case 361: if (M361()) return; break;                      // M361: SCARA Theta pos2
         case 362: if (M362()) return; break;                      // M362: SCARA Psi pos1
@@ -553,7 +553,7 @@ void GcodeSuite::process_parsed_command(
         case 402: M402(); break;                                  // M402: Stow probe
       #endif
 
-      #if ENABLED(FILAMENT_WIDTH_SENSOR) && DISABLED(CNC_MODE)
+      #if ENABLED(FILAMENT_WIDTH_SENSOR) && !defined(CNC_MODE)
         case 404: M404(); break;                                  // M404: Enter the nominal filament width (3mm, 1.75mm ) N<3.0> or display nominal filament width
         case 405: M405(); break;                                  // M405: Turn on filament sensor for control
         case 406: M406(); break;                                  // M406: Turn off filament sensor for control
@@ -594,7 +594,7 @@ void GcodeSuite::process_parsed_command(
         case 852: M852(); break;                                  // M852: Set Skew factors
       #endif
 
-      #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+      #if ENABLED(ADVANCED_PAUSE_FEATURE) && !defined(CNC_MODE)
         case 600: M600(); break;                                  // M600: Pause for Filament Change
         case 603: M603(); break;                                  // M603: Configure Filament Change
       #endif
@@ -603,12 +603,12 @@ void GcodeSuite::process_parsed_command(
         case 605: M605(); break;                                  // M605: Set Dual X Carriage movement mode
       #endif
 
-      #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES) && DISABLED(CNC_MODE)
+      #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES) && !defined(CNC_MODE)
         case 701: M701(); break;                                  // M701: Load Filament
         case 702: M702(); break;                                  // M702: Unload Filament
       #endif
 
-      #if ENABLED(LIN_ADVANCE) && DISABLED(CNC_MODE)
+      #if ENABLED(LIN_ADVANCE) && !defined(CNC_MODE)
         case 900: M900(); break;                                  // M900: Set advance K factor.
       #endif
 

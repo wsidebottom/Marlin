@@ -356,12 +356,12 @@ private:
     static void G5();
   #endif
 
-  #if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
+  #if ENABLED(FWRETRACT) && !defined(CNC_MODE)
     static void G10();
     static void G11();
   #endif
 
-  #if ENABLED(NOZZLE_CLEAN_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(NOZZLE_CLEAN_FEATURE) && !defined(CNC_MODE)
     static void G12();
   #endif
 
@@ -504,7 +504,7 @@ private:
     static void M100();
   #endif
 
-  #if DISABLED(CNC_MODE)
+  #if !defined(CNC_MODE)
     static void M104();
     static void M105();
   #endif
@@ -535,7 +535,7 @@ private:
   static void M120();
   static void M121();
 
-  #if ENABLED(PARK_HEAD_ON_PAUSE) && DISABLED(CNC_MODE)
+  #if ENABLED(PARK_HEAD_ON_PAUSE) && !defined(CNC_MODE)
     static void M125();
   #endif
 
@@ -550,16 +550,16 @@ private:
     #endif
   #endif
 
-  #if HAS_HEATER_BED && HAS_TEMP_BED && DISABLED(CNC_MODE)
+  #if HAS_HEATER_BED && HAS_TEMP_BED && !defined(CNC_MODE)
     static void M140();
     static void M190();
   #endif
 
-  #if ENABLED(ULTIPANEL) && DISABLED(CNC_MODE)
+  #if ENABLED(ULTIPANEL) && !defined(CNC_MODE)
     static void M145();
   #endif
 
-  #if ENABLED(TEMPERATURE_UNITS_SUPPORT) && DISABLED(CNC_MODE)
+  #if ENABLED(TEMPERATURE_UNITS_SUPPORT) && !defined(CNC_MODE)
     static void M149();
   #endif
 
@@ -567,11 +567,11 @@ private:
     static void M150();
   #endif
 
-  #if ENABLED(AUTO_REPORT_TEMPERATURES) && HAS_TEMP_SENSOR && DISABLED(CNC_MODE)
+  #if ENABLED(AUTO_REPORT_TEMPERATURES) && HAS_TEMP_SENSOR && !defined(CNC_MODE)
     static void M155();
   #endif
 
-  #if ENABLED(MIXING_EXTRUDER) && DISABLED(CNC_MODE)
+  #if ENABLED(MIXING_EXTRUDER) && !defined(CNC_MODE)
     static void M163();
     #if MIXING_VIRTUAL_TOOLS > 1
       static void M164();
@@ -581,7 +581,7 @@ private:
     #endif
   #endif
 
-  #if DISABLED(CNC_MODE)
+  #if !defined(CNC_MODE)
     static void M200();
     static void M201();
   #endif
@@ -598,7 +598,7 @@ private:
     static void M206();
   #endif
 
-  #if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
+  #if ENABLED(FWRETRACT) && !defined(CNC_MODE)
     static void M207();
     static void M208();
     static void M209();
@@ -610,7 +610,7 @@ private:
     static void M218();
   #endif
 
-  #if DISABLED(CNC_MODE)
+  #if !defined(CNC_MODE)
     static void M220();
     static void M221();
   #endif
@@ -634,7 +634,7 @@ private:
     static void M280();
   #endif
 
-  #if ENABLED(BABYSTEPPING) && DISABLED(CNC_MODE)
+  #if ENABLED(BABYSTEPPING) && !defined(CNC_MODE)
     static void M290();
   #endif
 
@@ -642,19 +642,19 @@ private:
     static void M300();
   #endif
 
-  #if ENABLED(PIDTEMP) && DISABLED(CNC_MODE)
+  #if ENABLED(PIDTEMP) && !defined(CNC_MODE)
     static void M301();
   #endif
 
-  #if ENABLED(PREVENT_COLD_EXTRUSION) && DISABLED(CNC_MODE)
+  #if ENABLED(PREVENT_COLD_EXTRUSION) && !defined(CNC_MODE)
     static void M302();
   #endif
 
-  #if DISABLED(CNC_MODE)
+  #if !defined(CNC_MODE)
     static void M303();
   #endif
 
-  #if ENABLED(PIDTEMPBED) && DISABLED(CNC_MODE)
+  #if ENABLED(PIDTEMPBED) && !defined(CNC_MODE)
     static void M304();
   #endif
 
@@ -665,7 +665,7 @@ private:
 
   static void M355();
 
-  #if ENABLED(MORGAN_SCARA) && DISABLED(CNC_MODE)
+  #if ENABLED(MORGAN_SCARA) && !defined(CNC_MODE)
     static bool M360();
     static bool M361();
     static bool M362();
@@ -685,7 +685,7 @@ private:
     static void M402();
   #endif
 
-  #if ENABLED(FILAMENT_WIDTH_SENSOR) && DISABLED(CNC_MODE)
+  #if ENABLED(FILAMENT_WIDTH_SENSOR) && !defined(CNC_MODE)
     static void M404();
     static void M405();
     static void M406();
@@ -715,7 +715,7 @@ private:
     static void M540();
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && !defined(CNC_MODE)
     static void M600();
     static void M603();
   #endif
@@ -724,7 +724,7 @@ private:
     static void M605();
   #endif
 
-  #if IS_KINEMATIC && DISABLED(CNC_MODE)
+  #if IS_KINEMATIC && !defined(CNC_MODE)
     static void M665();
   #endif
 
@@ -732,7 +732,7 @@ private:
     static void M666();
   #endif
 
-  #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES) && DISABLED(CNC_MODE)
+  #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES) && !defined(CNC_MODE)
     static void M701();
     static void M702();
   #endif

@@ -387,7 +387,7 @@
 #define HAS_DEBUG_MENU ENABLED(LCD_PROGRESS_BAR_TEST)
 
 // MK2 Multiplexer forces SINGLENOZZLE and kills DISABLE_INACTIVE_EXTRUDER
-#if ENABLED(MK2_MULTIPLEXER) && DISABLED(CNC_MODE)
+#if ENABLED(MK2_MULTIPLEXER) && !defined(CNC_MODE)
   #define SINGLENOZZLE
   #undef DISABLE_INACTIVE_EXTRUDER
 #endif
@@ -402,7 +402,7 @@
  *  E_MANUAL     - Number of E steppers for LCD move options
  *
  */
-#if (ENABLED(SINGLENOZZLE) || ENABLED(MIXING_EXTRUDER)) && DISABLED(CNC_MODE)         // One hotend, one thermistor, no XY offset
+#if (ENABLED(SINGLENOZZLE) || ENABLED(MIXING_EXTRUDER)) && !defined(CNC_MODE)         // One hotend, one thermistor, no XY offset
   #define HOTENDS       1
   #undef TEMP_SENSOR_1_AS_REDUNDANT
   #undef HOTEND_OFFSET_X
@@ -422,7 +422,7 @@
   #define HOTEND_INDEX  e
 #endif
 
-#if ENABLED(SWITCHING_EXTRUDER) && DISABLED(CNC_MODE)                               // One stepper for every two EXTRUDERS
+#if ENABLED(SWITCHING_EXTRUDER) && !defined(CNC_MODE)                               // One stepper for every two EXTRUDERS
   #if EXTRUDERS > 4
     #define E_STEPPERS    3
     #define E_MANUAL      3
@@ -433,7 +433,7 @@
     #define E_STEPPERS    1
   #endif
   #define E_MANUAL        EXTRUDERS
-#elif ENABLED(MIXING_EXTRUDER) && DISABLED(CNC_MODE)
+#elif ENABLED(MIXING_EXTRUDER) && !defined(CNC_MODE)
   #define E_STEPPERS      MIXING_STEPPERS
   #define E_MANUAL        1
 #else

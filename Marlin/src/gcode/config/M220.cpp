@@ -23,7 +23,7 @@
 #include "../gcode.h"
 #include "../../module/motion.h"
 
-#if DISABLED(CNC_MODE)
+#if !defined(CNC_MODE)
   /**
    * M220: Set speed percentage factor, aka "Feed Rate" (M220 S95)
    */

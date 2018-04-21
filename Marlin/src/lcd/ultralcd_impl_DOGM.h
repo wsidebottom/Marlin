@@ -353,7 +353,7 @@ void lcd_implementation_clear() { } // Automatically cleared by Picture Loop
   uint8_t row_y1, row_y2;
   uint8_t constexpr row_height = DOG_CHAR_HEIGHT + 2 * (TALL_FONT_CORRECTION);
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && !defined(CNC_MODE)
 
     static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t extruder=active_extruder) {
       row_y1 = row * row_height + 1;

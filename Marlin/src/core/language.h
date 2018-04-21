@@ -127,7 +127,11 @@
 #define MSG_INVALID_EXTRUDER                "Invalid extruder"
 #define MSG_INVALID_SOLENOID                "Invalid solenoid"
 #define MSG_ERR_NO_THERMISTORS              "No thermistors - no temperature"
-#define MSG_M115_REPORT                     "FIRMWARE_NAME:Marlin " DETAILED_BUILD_VERSION " SOURCE_CODE_URL:" SOURCE_CODE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_NAME " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID
+#if !defined(CNC_MODE)
+  #define MSG_M115_REPORT                     "FIRMWARE_NAME:Marlin " DETAILED_BUILD_VERSION " SOURCE_CODE_URL:" SOURCE_CODE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_NAME " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID
+#else
+  #define MSG_M115_REPORT                     "FIRMWARE_NAME:Marlin " DETAILED_BUILD_VERSION " SOURCE_CODE_URL:" SOURCE_CODE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_NAME " UUID:" MACHINE_UUID
+#endif
 #define MSG_COUNT_X                         " Count X:"
 #define MSG_COUNT_A                         " Count A:"
 #define MSG_ERR_KILLED                      "Printer halted. kill() called!"
@@ -153,6 +157,8 @@
 #define MSG_Z2_MAX                          "z2_max: "
 #define MSG_Z_PROBE                         "z_probe: "
 #define MSG_PROBE_Z_OFFSET                  "Probe Z Offset"
+#define MSG_A_MIN                           "a_min: "
+#define MSG_A_MAX                           "a_max: "
 #define MSG_SKEW_MIN                        "min_skew_factor: "
 #define MSG_SKEW_MAX                        "max_skew_factor: "
 #define MSG_FILAMENT_RUNOUT_SENSOR          "filament: "
@@ -272,7 +278,11 @@
 #define MSG_X "X"
 #define MSG_Y "Y"
 #define MSG_Z "Z"
-#define MSG_E "E"
+#if !defined(CNC_MODE)
+  #define MSG_E "E"
+#else
+  #define MSG_E "A"
+#endif
 #if IS_KINEMATIC
   #define MSG_A "A"
   #define MSG_B "B"
