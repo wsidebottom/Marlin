@@ -1705,4 +1705,24 @@ static_assert(COUNT(sanity_arr_3) <= XYZE_N, "DEFAULT_MAX_ACCELERATION has too m
   #endif
 #endif
 
+// CNC Mode Checks
+#if ENABLED(CNC_MODE)
+  #if EXTRUDERS != 1
+    #error "EXTRUDERS is not able to be set to anything other than 1 in CNC Mode"
+  #endif
+  #if ENABLED(SINGLENOZZLE) || ENABLED(MK2_MULTIPLEXER) || ENABLED(SWITCHING_EXTRUDER)    \
+   || ENABLED(SWITCHING_NOZZLE) || ENABLED(PARKING_EXTRUDER)|| ENABLED(MIXING_EXTRUDER)
+    #error "SINGLENOZZLE, MK2_MULTIPLEXER, SWITCHING_EXTRUDER, SWITCHING_NOZZLE, PARKING_EXTRUDER or MIXING_EXTRUDER are not compatible with CNC Mode"
+  #endif
+  #if defined(TEMP_SENSOR_0) || defined(TEMP_SENSOR_1) || defined(TEMP_SENSOR_2)          \
+   || defined(TEMP_SENSOR_3) || defined(TEMP_SENSOR_4) || defined(TEMP_SENSOR_BED)        \
+   || defined(TEMP_SENSOR_CHAMBER)
+    #warning "TEMP_SENSOR_x values are ignored in CNC Mode"
+  #endif
+  #if ENABLED(BABYSTEPPING)
+    #error "BABYSTEPPING is not compatible with CNC Mode"
+  #endif
+  // ADVANCED_PAUSE_FEATURE FWRETRACT
+#endif
+
 #endif // _SANITYCHECK_H_

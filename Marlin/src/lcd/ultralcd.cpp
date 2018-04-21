@@ -39,7 +39,7 @@
 
 #include "../Marlin.h"
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
   #include "../feature/pause.h"
 #endif
 
@@ -47,7 +47,7 @@
   #include "../libs/duration_t.h"
 #endif
 
-#if ENABLED(FILAMENT_LCD_DISPLAY) && DISABLED(CNC_MODE)
+#if ENABLED(FILAMENT_LCD_DISPLAY)
   #include "../feature/filwidth.h"
 #endif
 
@@ -214,7 +214,7 @@ uint16_t max_display_update_time = 0;
     void lcd_led_menu();
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
     #if E_STEPPERS > 1 || ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
       void lcd_change_filament_menu();
     #else
@@ -1349,7 +1349,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Bed:
     //
-    #if HAS_TEMP_BED && DISABLED(CNC_MODE)
+    #if HAS_TEMP_BED
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &thermalManager.target_temperature_bed, 0, BED_MAXTEMP - 15, watch_temp_callback_bed);
     #endif
 
@@ -1403,7 +1403,7 @@ void kill_screen(const char* lcd_msg) {
     // Babystep Y:
     // Babystep Z:
     //
-    #if ENABLED(BABYSTEPPING) && DISABLED(CNC_MODE)
+    #if ENABLED(BABYSTEPPING)
       #if ENABLED(BABYSTEP_XY)
         MENU_ITEM(submenu, MSG_BABYSTEP_X, lcd_babystep_x);
         MENU_ITEM(submenu, MSG_BABYSTEP_Y, lcd_babystep_y);
@@ -1418,7 +1418,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Change filament
     //
-    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
       #if E_STEPPERS == 1 && !ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
         if (thermalManager.targetHotEnoughToExtrude(active_extruder))
           MENU_ITEM(gcode, MSG_FILAMENTCHANGE, PSTR("M600 B0"));
@@ -3607,8 +3607,10 @@ void kill_screen(const char* lcd_msg) {
       // M204 P Acceleration
       MENU_ITEM_EDIT(float5, MSG_ACC, &planner.acceleration, 10, 99000);
 
-      // M204 R Retract Acceleration
-      MENU_ITEM_EDIT(float5, MSG_A_RETRACT, &planner.retract_acceleration, 100, 99000);
+      #if DISABLED(CNC_MODE)
+        // M204 R Retract Acceleration
+        MENU_ITEM_EDIT(float5, MSG_A_RETRACT, &planner.retract_acceleration, 100, 99000);
+      #endif
 
       // M204 T Travel Acceleration
       MENU_ITEM_EDIT(float5, MSG_A_TRAVEL, &planner.travel_acceleration, 100, 99000);
@@ -3726,7 +3728,7 @@ void kill_screen(const char* lcd_msg) {
     END_MENU();
   }
 
-  #if DISABLED(NO_VOLUMETRICS) || ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if DISABLED(NO_VOLUMETRICS) || ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
     /**
      *
      * "Control" > "Filament" submenu
@@ -3816,7 +3818,7 @@ void kill_screen(const char* lcd_msg) {
    * "Control" > "Retract" submenu
    *
    */
-  #if ENABLED(FWRETRACT)
+  #if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
 
     void lcd_control_retract_menu() {
       START_MENU();

@@ -650,7 +650,11 @@ void MarlinSettings::postprocess() {
     #else
 
       const bool volumetric_enabled = false;
-      dummy = DEFAULT_NOMINAL_FILAMENT_DIA;
+      #if ENABLED(CNC_MODE)
+        dummy = 0;
+      #else
+        dummy = DEFAULT_NOMINAL_FILAMENT_DIA;
+      #endif
       EEPROM_WRITE(volumetric_enabled);
       for (uint8_t q = MAX_EXTRUDERS; q--;) EEPROM_WRITE(dummy);
 
