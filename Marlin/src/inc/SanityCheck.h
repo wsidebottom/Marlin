@@ -1730,6 +1730,11 @@ static_assert(COUNT(sanity_arr_3) <= XYZE_N, "DEFAULT_MAX_ACCELERATION has too m
    || defined(COREZY) || defined(DELTA) || defined(MORGAN_SCARA) || defined(MAKERARM_SCARA)
     #error "CORExx, DELTA or SCARA variants are not compatible with CNC Mode."
   #endif
+  #if defined(FILAMENT_RUNOUT_SENSOR) || defined(G26_MESH_VALIDATION) || defined(TEMPERATURE_UNITS_SUPPORT) \
+   || defined(NOZZLE_PARK_FEATURE) || defined(NOZZLE_CLEAN_FEATURE) || defined(TEMP_STAT_LEDS) \
+   || defined(BARICUDA)
+    #error "FILAMENT_RUNOUT_SENSOR, G26_MESH_VALIDATION, TEMPERATURE_UNITS_SUPPORT, NOZZLE_PARK_FEATURE, NOZZLE_CLEAN_FEATURE, TEMP_STAT_LEDS or BARICUDA are not compatible with CNC Mode."
+  #endif
   #if defined(DEFAULT_RETRACT_ACCELERATION)
     #warning "DEFAULT_RETRACT_ACCELERATION is ignored with CNC Mode."
   #endif
@@ -1739,6 +1744,22 @@ static_assert(COUNT(sanity_arr_3) <= XYZE_N, "DEFAULT_MAX_ACCELERATION has too m
   #if DISABLED(NO_VOLUMETRICS)
     #error "Volumetric measurements are not supported in CNC Mode."
   #endif
+  #if defined(HEPHESTOS2_HEATED_BED_KIT) || defined(SHOW_TEMP_ADC_VALUES) || defined(EXTRUDER_RUNOUT_PREVENT) \
+   || defined(FANMUX0_PIN) || defined(FANMUX1_PIN) || defined(FANMUX2_PIN)
+    #error "HEPHESTOS2_HEATED_BED_KIT, SHOW_TEMP_ADC_VALUES, EXTRUDER_RUNOUT_PREVENT or FANMUXx_PIN are not compatible with CNC Mode."
+  #endif
+  #if defined(EXT_SOLENOID) || defined(DUAL_NOZZLE_DUPLICATION_MODE) || defined(LIN_ADVANCE) \
+   || defined(HEATERS_PARALLEL) || defined(FWRETRACT) || defined(FILAMENT_WIDTH_SENSOR) \
+   || defined(AUTO_REPORT_TEMPERATURES)
+    #error "EXT_SOLENOID, DUAL_NOZZLE_DUPLICATION_MODE, LIN_ADVANCE, HEATERS_PARALLEL, FWRETRACT, FILAMENT_WIDTH_SENSOR or AUTO_REPORT_TEMPERATURES are not compatible with CNC Mode."
+  #endif
+  #if !defined(SPINDLE_LASER_ENABLE) || !defined(CNC_COORDINATE_SYSTEMS) || !defined(NO_VOLUMETRICS)
+    #error "SPINDLE_LASER_ENABLE, CNC_COORDINATE_SYSTEMS and NO_VOLUMETRICS must be defined."
+  #endif
+  #if defined(NO_WORKSPACE_OFFSETS)
+    #error "NO_WORKSPACE_OFFSETS are not compatible with CNC Mode."
+  #endif
+  
 #endif
 
 #endif // _SANITYCHECK_H_

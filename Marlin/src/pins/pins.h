@@ -510,53 +510,55 @@
   #define CONTROLLER_FAN_PIN  -1
 #endif
 
-#ifndef FANMUX0_PIN
-  #define FANMUX0_PIN -1
-#endif
-#ifndef FANMUX1_PIN
-  #define FANMUX1_PIN -1
-#endif
-#ifndef FANMUX2_PIN
-  #define FANMUX2_PIN -1
-#endif
+#if !defined(CNC_MODE)
+  #ifndef FANMUX0_PIN
+    #define FANMUX0_PIN -1
+  #endif
+  #ifndef FANMUX1_PIN
+    #define FANMUX1_PIN -1
+  #endif
+  #ifndef FANMUX2_PIN
+    #define FANMUX2_PIN -1
+  #endif
 
-#ifndef HEATER_0_PIN
-  #define HEATER_0_PIN -1
-#endif
-#ifndef HEATER_1_PIN
-  #define HEATER_1_PIN -1
-#endif
-#ifndef HEATER_2_PIN
-  #define HEATER_2_PIN -1
-#endif
-#ifndef HEATER_3_PIN
-  #define HEATER_3_PIN -1
-#endif
-#ifndef HEATER_4_PIN
-  #define HEATER_4_PIN -1
-#endif
-#ifndef HEATER_BED_PIN
-  #define HEATER_BED_PIN -1
-#endif
+  #ifndef HEATER_0_PIN
+    #define HEATER_0_PIN -1
+  #endif
+  #ifndef HEATER_1_PIN
+    #define HEATER_1_PIN -1
+  #endif
+  #ifndef HEATER_2_PIN
+    #define HEATER_2_PIN -1
+  #endif
+  #ifndef HEATER_3_PIN
+    #define HEATER_3_PIN -1
+  #endif
+  #ifndef HEATER_4_PIN
+    #define HEATER_4_PIN -1
+  #endif
+  #ifndef HEATER_BED_PIN
+    #define HEATER_BED_PIN -1
+  #endif
 
-#ifndef TEMP_0_PIN
-  #define TEMP_0_PIN -1
-#endif
-#ifndef TEMP_1_PIN
-  #define TEMP_1_PIN -1
-#endif
-#ifndef TEMP_2_PIN
-  #define TEMP_2_PIN -1
-#endif
-#ifndef TEMP_3_PIN
-  #define TEMP_3_PIN -1
-#endif
-#ifndef TEMP_4_PIN
-  #define TEMP_4_PIN -1
-#endif
-#ifndef TEMP_BED_PIN
-  #define TEMP_BED_PIN -1
-#endif
+  #ifndef TEMP_0_PIN
+    #define TEMP_0_PIN -1
+  #endif
+  #ifndef TEMP_1_PIN
+    #define TEMP_1_PIN -1
+  #endif
+  #ifndef TEMP_2_PIN
+    #define TEMP_2_PIN -1
+  #endif
+  #ifndef TEMP_3_PIN
+    #define TEMP_3_PIN -1
+  #endif
+  #ifndef TEMP_4_PIN
+    #define TEMP_4_PIN -1
+  #endif
+  #ifndef TEMP_BED_PIN
+    #define TEMP_BED_PIN -1
+  #endif
+#endif // CNC_MODE
 
 #ifndef SD_DETECT_PIN
   #define SD_DETECT_PIN -1

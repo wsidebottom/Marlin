@@ -27,6 +27,11 @@
 #include "../gcode.h"
 #include "../../module/stepper.h"
 
+#if ENABLED(PRINTJOB_TIMER_AUTOSTART)
+  #include "../../module/printcounter.h"
+#endif
+// print_job_timer.start();
+
 /**
  * M3: Spindle Clockwise
  * M4: Spindle Counter-clockwise
@@ -88,6 +93,9 @@ void GcodeSuite::M3_M4(bool is_M3) {
     ) {
       WRITE(SPINDLE_LASER_ENABLE_PIN, !SPINDLE_LASER_ENABLE_INVERT);  // turn spindle off
       delay_for_power_down();
+      #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
+        print_job_timer.start();
+      #endif
     }
     WRITE(SPINDLE_DIR_PIN, rotation_dir);
   #endif
@@ -105,6 +113,9 @@ void GcodeSuite::M3_M4(bool is_M3) {
         WRITE(SPINDLE_LASER_ENABLE_PIN, !SPINDLE_LASER_ENABLE_INVERT);                                    // turn spindle off (active low)
         analogWrite(SPINDLE_LASER_PWM_PIN, SPINDLE_LASER_PWM_INVERT ? 255 : 0);                           // only write low byte
         delay_for_power_down();
+        #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
+          print_job_timer.stop();
+        #endif
       }
       else {
         int16_t ocr_val = (spindle_laser_power - (SPEED_POWER_INTERCEPT)) * (1.0 / (SPEED_POWER_SLOPE));  // convert RPM to PWM duty cycle
@@ -114,6 +125,9 @@ void GcodeSuite::M3_M4(bool is_M3) {
         if (spindle_laser_power >= SPEED_POWER_MAX)
           ocr_val = (SPEED_POWER_MAX - (SPEED_POWER_INTERCEPT)) * (1.0 / (SPEED_POWER_SLOPE));            // limit to max RPM
         if (SPINDLE_LASER_PWM_INVERT) ocr_val = 255 - ocr_val;
+        #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
+          print_job_timer.start();
+        #endif
         WRITE(SPINDLE_LASER_ENABLE_PIN, SPINDLE_LASER_ENABLE_INVERT);                                     // turn spindle on (active low)
         analogWrite(SPINDLE_LASER_PWM_PIN, ocr_val & 0xFF);                                               // only write low byte
         delay_for_power_up();
@@ -121,6 +135,9 @@ void GcodeSuite::M3_M4(bool is_M3) {
     }
   #else
     WRITE(SPINDLE_LASER_ENABLE_PIN, SPINDLE_LASER_ENABLE_INVERT); // turn spindle on (active low) if spindle speed option not enabled
+    #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
+      print_job_timer.start();
+    #endif
     delay_for_power_up();
   #endif
 }
@@ -135,6 +152,9 @@ void GcodeSuite::M5() {
     analogWrite(SPINDLE_LASER_PWM_PIN, SPINDLE_LASER_PWM_INVERT ? 255 : 0);
   #endif
   delay_for_power_down();
+  #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
+    print_job_timer.stop();
+  #endif
 }
 
 #endif // SPINDLE_LASER_ENABLE

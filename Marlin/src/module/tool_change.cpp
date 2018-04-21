@@ -361,10 +361,12 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
   #else // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
 
-    if (tmp_extruder >= EXTRUDERS)
-      return invalid_extruder_error(tmp_extruder);
+    #if !defined(CNC_MODE)
+      if (tmp_extruder >= EXTRUDERS)
+        return invalid_extruder_error(tmp_extruder);
+    #endif
 
-    #if HOTENDS > 1
+    #if (HOTENDS > 1) && !defined(CNC_MODE)
 
       const float old_feedrate_mm_s = fr_mm_s > 0.0 ? fr_mm_s : feedrate_mm_s;
 
@@ -475,7 +477,7 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
 
       feedrate_mm_s = old_feedrate_mm_s;
 
-    #else // HOTENDS <= 1
+    #elif // HOTENDS <= 1
 
       UNUSED(fr_mm_s);
       UNUSED(no_move);
