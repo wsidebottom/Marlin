@@ -48,6 +48,7 @@
 
 #endif // !NO_VOLUMETRICS
 
+#if DISABLED(CNC_MODE)
 /**
  * M201: Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
  *
@@ -66,6 +67,7 @@ void GcodeSuite::M201() {
   // steps per sq second need to be updated to agree with the units per sq second (as they are what is used in the planner)
   planner.reset_acceleration_rates();
 }
+#endif
 
 /**
  * M203: Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in units/sec

@@ -792,7 +792,7 @@ static void lcd_implementation_status_screen() {
 
 #if ENABLED(ULTIPANEL)
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
 
     static void lcd_implementation_hotend_status(const uint8_t row, const uint8_t extruder=active_extruder) {
       if (row < LCD_HEIGHT) {

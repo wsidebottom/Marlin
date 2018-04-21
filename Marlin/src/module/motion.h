@@ -170,9 +170,9 @@ void clean_up_after_endstop_or_probe_move();
       || ENABLED(Z_PROBE_SLED)                                                     \
       || HAS_PROBING_PROCEDURE                                                     \
       || HOTENDS > 1                                                               \
-      || ENABLED(NOZZLE_CLEAN_FEATURE)                                             \
-      || ENABLED(NOZZLE_PARK_FEATURE)                                              \
-      || (ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(HOME_BEFORE_FILAMENT_CHANGE)) \
+      || (ENABLED(NOZZLE_CLEAN_FEATURE)  && DISABLED(CNC_MODE))                    \
+      || (ENABLED(NOZZLE_PARK_FEATURE) && DISABLED(CNC_MODE))                      \
+      || (ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(HOME_BEFORE_FILAMENT_CHANGE)  && DISABLED(CNC_MODE)) \
       || HAS_M206_COMMAND                                                          \
     ) || ENABLED(NO_MOTION_BEFORE_HOMING)
 

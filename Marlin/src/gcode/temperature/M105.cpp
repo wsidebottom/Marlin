@@ -27,6 +27,7 @@
   #include "../../gcode/queue.h"
 #endif
 
+#if DISABLED(CNC_MODE)
 /**
  * M105: Read hot end and bed temperature
  */
@@ -51,3 +52,4 @@ void GcodeSuite::M105() {
 
   SERIAL_EOL_P(port);
 }
+#endif

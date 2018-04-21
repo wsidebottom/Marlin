@@ -356,12 +356,12 @@ private:
     static void G5();
   #endif
 
-  #if ENABLED(FWRETRACT)
+  #if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
     static void G10();
     static void G11();
   #endif
 
-  #if ENABLED(NOZZLE_CLEAN_FEATURE)
+  #if ENABLED(NOZZLE_CLEAN_FEATURE) && DISABLED(CNC_MODE)
     static void G12();
   #endif
 
@@ -504,8 +504,11 @@ private:
     static void M100();
   #endif
 
-  static void M104();
-  static void M105();
+  #if DISABLED(CNC_MODE)
+    static void M104();
+    static void M105();
+  #endif
+
   static void M106();
   static void M107();
 
@@ -532,7 +535,7 @@ private:
   static void M120();
   static void M121();
 
-  #if ENABLED(PARK_HEAD_ON_PAUSE)
+  #if ENABLED(PARK_HEAD_ON_PAUSE) && DISABLED(CNC_MODE)
     static void M125();
   #endif
 
@@ -547,16 +550,16 @@ private:
     #endif
   #endif
 
-  #if HAS_HEATER_BED && HAS_TEMP_BED
+  #if HAS_HEATER_BED && HAS_TEMP_BED && DISABLED(CNC_MODE)
     static void M140();
     static void M190();
   #endif
 
-  #if ENABLED(ULTIPANEL)
+  #if ENABLED(ULTIPANEL) && DISABLED(CNC_MODE)
     static void M145();
   #endif
 
-  #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
+  #if ENABLED(TEMPERATURE_UNITS_SUPPORT) && DISABLED(CNC_MODE)
     static void M149();
   #endif
 
@@ -564,11 +567,11 @@ private:
     static void M150();
   #endif
 
-  #if ENABLED(AUTO_REPORT_TEMPERATURES) && HAS_TEMP_SENSOR
+  #if ENABLED(AUTO_REPORT_TEMPERATURES) && HAS_TEMP_SENSOR && DISABLED(CNC_MODE)
     static void M155();
   #endif
 
-  #if ENABLED(MIXING_EXTRUDER)
+  #if ENABLED(MIXING_EXTRUDER) && DISABLED(CNC_MODE)
     static void M163();
     #if MIXING_VIRTUAL_TOOLS > 1
       static void M164();
@@ -578,9 +581,11 @@ private:
     #endif
   #endif
 
-  static void M200();
-  static void M201();
-
+  #if DISABLED(CNC_MODE)
+    static void M200();
+    static void M201();
+  #endif
+  
   #if 0
     static void M202(); // Not used for Sprinter/grbl gen6
   #endif
@@ -593,7 +598,7 @@ private:
     static void M206();
   #endif
 
-  #if ENABLED(FWRETRACT)
+  #if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
     static void M207();
     static void M208();
     static void M209();
@@ -605,8 +610,11 @@ private:
     static void M218();
   #endif
 
-  static void M220();
-  static void M221();
+  #if DISABLED(CNC_MODE)
+    static void M220();
+    static void M221();
+  #endif
+
   static void M226();
 
   #if defined(CHDK) || HAS_PHOTOGRAPH
@@ -626,7 +634,7 @@ private:
     static void M280();
   #endif
 
-  #if ENABLED(BABYSTEPPING)
+  #if ENABLED(BABYSTEPPING) && DISABLED(CNC_MODE)
     static void M290();
   #endif
 
@@ -634,17 +642,19 @@ private:
     static void M300();
   #endif
 
-  #if ENABLED(PIDTEMP)
+  #if ENABLED(PIDTEMP) && DISABLED(CNC_MODE)
     static void M301();
   #endif
 
-  #if ENABLED(PREVENT_COLD_EXTRUSION)
+  #if ENABLED(PREVENT_COLD_EXTRUSION) && DISABLED(CNC_MODE)
     static void M302();
   #endif
 
-  static void M303();
+  #if DISABLED(CNC_MODE)
+    static void M303();
+  #endif
 
-  #if ENABLED(PIDTEMPBED)
+  #if ENABLED(PIDTEMPBED) && DISABLED(CNC_MODE)
     static void M304();
   #endif
 
@@ -655,7 +665,7 @@ private:
 
   static void M355();
 
-  #if ENABLED(MORGAN_SCARA)
+  #if ENABLED(MORGAN_SCARA) && DISABLED(CNC_MODE)
     static bool M360();
     static bool M361();
     static bool M362();
@@ -675,7 +685,7 @@ private:
     static void M402();
   #endif
 
-  #if ENABLED(FILAMENT_WIDTH_SENSOR)
+  #if ENABLED(FILAMENT_WIDTH_SENSOR) && DISABLED(CNC_MODE)
     static void M404();
     static void M405();
     static void M406();
@@ -705,7 +715,7 @@ private:
     static void M540();
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
     static void M600();
     static void M603();
   #endif
@@ -714,7 +724,7 @@ private:
     static void M605();
   #endif
 
-  #if IS_KINEMATIC
+  #if IS_KINEMATIC && DISABLED(CNC_MODE)
     static void M665();
   #endif
 
@@ -722,7 +732,7 @@ private:
     static void M666();
   #endif
 
-  #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
+  #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES) && DISABLED(CNC_MODE)
     static void M701();
     static void M702();
   #endif

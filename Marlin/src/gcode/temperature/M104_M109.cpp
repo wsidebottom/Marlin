@@ -35,6 +35,7 @@
   #include "../../feature/leds/leds.h"
 #endif
 
+#if DISABLED(CNC_MODE)
 /**
  * M104: Set hot end temperature
  */
@@ -253,3 +254,4 @@ void GcodeSuite::M109() {
     KEEPALIVE_STATE(IN_HANDLER);
   #endif
 }
+#endif

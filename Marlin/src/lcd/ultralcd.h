@@ -34,7 +34,7 @@
 
   #include "../Marlin.h"
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
     #include "../feature/pause.h"
   #endif
 
@@ -128,7 +128,7 @@
     void lcd_quick_feedback(const bool clear_buttons); // Audible feedback for a button click - could also be visual
     void lcd_completion_feedback(const bool good=true);
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
       extern uint8_t active_extruder;
       void lcd_advanced_pause_show_message(const AdvancedPauseMessage message,
                                            const AdvancedPauseMode mode=ADVANCED_PAUSE_MODE_PAUSE_PRINT,

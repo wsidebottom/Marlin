@@ -112,9 +112,9 @@
        G38_endstop_hit = false;
 #endif
 
-#if ENABLED(DELTA)
+#if ENABLED(DELTA) && DISABLED(CNC_MODE)
   #include "module/delta.h"
-#elif IS_SCARA
+#elif IS_SCARA && DISABLED(CNC_MODE)
   #include "module/scara.h"
 #endif
 
@@ -122,15 +122,15 @@
   #include "feature/bedlevel/bedlevel.h"
 #endif
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
+#if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT) && DISABLED(CNC_MODE)
   #include "feature/pause.h"
 #endif
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
+#if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
   #include "feature/runout.h"
 #endif
 
-#if ENABLED(TEMP_STAT_LEDS)
+#if ENABLED(TEMP_STAT_LEDS) && DISABLED(CNC_MODE)
   #include "feature/leds/tempstat.h"
 #endif
 
@@ -142,7 +142,7 @@
   #include "feature/fanmux.h"
 #endif
 
-#if (ENABLED(SWITCHING_EXTRUDER) && !DONT_SWITCH) || ENABLED(SWITCHING_NOZZLE) || ENABLED(PARKING_EXTRUDER)
+#if ((ENABLED(SWITCHING_EXTRUDER) && !DONT_SWITCH) || ENABLED(SWITCHING_NOZZLE) || ENABLED(PARKING_EXTRUDER)) && DISABLED(CNC_MODE)
   #include "module/tool_change.h"
 #endif
 
@@ -328,7 +328,7 @@ void disable_all_steppers() {
  */
 void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
     runout.run();
   #endif
 
@@ -343,7 +343,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
   }
 
   // Prevent steppers timing-out in the middle of M600
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && ENABLED(PAUSE_PARK_NO_STEPPER_TIMEOUT) && DISABLED(CNC_MODE)
     #define MOVE_AWAY_TEST !did_pause_print
   #else
     #define MOVE_AWAY_TEST true
@@ -512,7 +512,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
  * Standard idle routine keeps the machine alive
  */
 void idle(
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
     bool no_stepper_sleep/*=false*/
   #endif
 ) {
@@ -527,7 +527,7 @@ void idle(
   #endif
 
   manage_inactivity(
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
       no_stepper_sleep
     #endif
   );
@@ -663,7 +663,7 @@ void setup() {
     MCUCR = 0x80;
   #endif
 
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR) && DISABLED(CNC_MODE)
     runout.setup();
   #endif
 

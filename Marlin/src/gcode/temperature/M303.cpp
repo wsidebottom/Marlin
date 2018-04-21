@@ -23,6 +23,7 @@
 #include "../gcode.h"
 #include "../../module/temperature.h"
 
+#if DISABLED(CNC_MODE)
 /**
  * M303: PID relay autotune
  *
@@ -55,3 +56,4 @@ void GcodeSuite::M303() {
     SERIAL_ERRORLNPGM(MSG_ERR_M303_DISABLED);
   #endif
 }
+#endif

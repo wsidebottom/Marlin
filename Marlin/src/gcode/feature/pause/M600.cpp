@@ -22,7 +22,7 @@
 
 #include "../../../inc/MarlinConfig.h"
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
 
 #include "../../gcode.h"
 #include "../../../feature/pause.h"

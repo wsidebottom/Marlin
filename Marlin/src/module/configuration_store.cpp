@@ -80,11 +80,11 @@
   #define TMC_GET_PWMTHRS(P,Q) _tmc_thrs(stepper##Q.microsteps(), stepper##Q.TPWMTHRS(), planner.axis_steps_per_mm[P##_AXIS])
 #endif
 
-#if ENABLED(FWRETRACT)
+#if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
   #include "../feature/fwretract.h"
 #endif
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
   #include "../feature/pause.h"
 #endif
 
@@ -878,7 +878,7 @@ void MarlinSettings::postprocess() {
 
     _FIELD_TEST(filament_change_unload_length);
 
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
       for (uint8_t q = 0; q < MAX_EXTRUDERS; q++) {
         if (q < COUNT(filament_change_unload_length)) dummy = filament_change_unload_length[q];
         EEPROM_WRITE(dummy);
@@ -1469,7 +1469,7 @@ void MarlinSettings::postprocess() {
 
       _FIELD_TEST(filament_change_unload_length);
 
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
         for (uint8_t q = 0; q < MAX_EXTRUDERS; q++) {
           EEPROM_READ(dummy);
           if (!validating && q < COUNT(filament_change_unload_length)) filament_change_unload_length[q] = dummy;
@@ -1875,7 +1875,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
     #endif
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
     for (uint8_t e = 0; e < E_STEPPERS; e++) {
       filament_change_unload_length[e] = FILAMENT_CHANGE_UNLOAD_LENGTH;
       filament_change_load_length[e] = FILAMENT_CHANGE_FAST_LOAD_LENGTH;
@@ -1904,7 +1904,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
     #endif
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
     void say_M603(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M603 "); }
   #endif
 
@@ -2558,7 +2558,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
     /**
      * Advanced Pause filament load & unload lengths
      */
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
       if (!forReplay) {
         CONFIG_ECHO_START;
         SERIAL_ECHOLNPGM_P(port, "Filament load/unload lengths:");

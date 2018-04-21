@@ -39,7 +39,7 @@
 
 #include "../Marlin.h"
 
-#if ENABLED(ADVANCED_PAUSE_FEATURE)
+#if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
   #include "../feature/pause.h"
 #endif
 
@@ -47,7 +47,7 @@
   #include "../libs/duration_t.h"
 #endif
 
-#if ENABLED(FILAMENT_LCD_DISPLAY)
+#if ENABLED(FILAMENT_LCD_DISPLAY) && DISABLED(CNC_MODE)
   #include "../feature/filwidth.h"
 #endif
 
@@ -187,15 +187,17 @@ uint16_t max_display_update_time = 0;
   void lcd_prepare_menu();
   void lcd_move_menu();
   void lcd_control_menu();
-  void lcd_control_temperature_menu();
+  #if DISABLED(CNC_MODE)
+    void lcd_control_temperature_menu();
+  #endif
   void lcd_control_motion_menu();
 
-  #if DISABLED(SLIM_LCD_MENUS)
+  #if DISABLED(SLIM_LCD_MENUS) && DISABLED(CNC_MODE)
     void lcd_control_temperature_preheat_material1_settings_menu();
     void lcd_control_temperature_preheat_material2_settings_menu();
   #endif
 
-  #if DISABLED(NO_VOLUMETRICS) || ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if (DISABLED(NO_VOLUMETRICS) || ENABLED(ADVANCED_PAUSE_FEATURE)) && DISABLED(CNC_MODE)
     void lcd_control_filament_menu();
   #endif
 
@@ -212,7 +214,7 @@ uint16_t max_display_update_time = 0;
     void lcd_led_menu();
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
     #if E_STEPPERS > 1 || ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
       void lcd_change_filament_menu();
     #else
@@ -1328,9 +1330,9 @@ void kill_screen(const char* lcd_msg) {
     // Nozzle:
     // Nozzle [1-4]:
     //
-    #if HOTENDS == 1
+    #if (HOTENDS == 1) && DISABLED(CNC_MODE)
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &thermalManager.target_temperature[0], 0, HEATER_0_MAXTEMP - 15, watch_temp_callback_E0);
-    #else // HOTENDS > 1
+    #elif DISABLED(CNC_MODE) // HOTENDS > 1
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &thermalManager.target_temperature[0], 0, HEATER_0_MAXTEMP - 15, watch_temp_callback_E0);
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &thermalManager.target_temperature[1], 0, HEATER_1_MAXTEMP - 15, watch_temp_callback_E1);
       #if HOTENDS > 2
@@ -1347,7 +1349,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Bed:
     //
-    #if HAS_TEMP_BED
+    #if HAS_TEMP_BED && DISABLED(CNC_MODE)
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_BED, &thermalManager.target_temperature_bed, 0, BED_MAXTEMP - 15, watch_temp_callback_bed);
     #endif
 
@@ -1401,7 +1403,7 @@ void kill_screen(const char* lcd_msg) {
     // Babystep Y:
     // Babystep Z:
     //
-    #if ENABLED(BABYSTEPPING)
+    #if ENABLED(BABYSTEPPING) && DISABLED(CNC_MODE)
       #if ENABLED(BABYSTEP_XY)
         MENU_ITEM(submenu, MSG_BABYSTEP_X, lcd_babystep_x);
         MENU_ITEM(submenu, MSG_BABYSTEP_Y, lcd_babystep_y);
@@ -1416,7 +1418,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Change filament
     //
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
       #if E_STEPPERS == 1 && !ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
         if (thermalManager.targetHotEnoughToExtrude(active_extruder))
           MENU_ITEM(gcode, MSG_FILAMENTCHANGE, PSTR("M600 B0"));
@@ -1476,6 +1478,7 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // HAS_MOTOR_CURRENT_PWM
 
+#if DISABLED(CNC_MODE)
   constexpr int16_t heater_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP, HEATER_4_MAXTEMP);
 
   /**
@@ -1704,8 +1707,9 @@ void kill_screen(const char* lcd_msg) {
     thermalManager.disable_all_heaters();
     lcd_return_to_status();
   }
+#endif
 
-  #if ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(PID_AUTOTUNE_MENU) || ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if (ENABLED(AUTO_BED_LEVELING_UBL) || ENABLED(PID_AUTOTUNE_MENU) || ENABLED(ADVANCED_PAUSE_FEATURE)) && DISABLED(CNC_MODE)
 
     /**
      * If the queue is full, the command will fail, so we have to loop
@@ -2565,7 +2569,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Move Axis
     //
-    #if ENABLED(DELTA)
+    #if ENABLED(DELTA) && DISABLED(CNC_MODE)
       if (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && axis_homed[Z_AXIS])
     #endif
         MENU_ITEM(submenu, MSG_MOVE_AXIS, lcd_move_menu);
@@ -2626,7 +2630,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Change filament
     //
-    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
       if (!IS_SD_FILE_OPEN) {
         #if E_STEPPERS == 1 && !ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
           if (thermalManager.targetHotEnoughToExtrude(active_extruder))
@@ -2693,7 +2697,7 @@ void kill_screen(const char* lcd_msg) {
     //
     // Delta Calibration
     //
-    #if ENABLED(DELTA_CALIBRATION_MENU) || ENABLED(DELTA_AUTO_CALIBRATION)
+    #if (ENABLED(DELTA_CALIBRATION_MENU) || ENABLED(DELTA_AUTO_CALIBRATION)) && DISABLED(CNC_MODE)
       MENU_ITEM(submenu, MSG_DELTA_CALIBRATE, lcd_delta_calibrate_menu);
     #endif
 
@@ -2702,7 +2706,7 @@ void kill_screen(const char* lcd_msg) {
 
   float move_menu_scale;
 
-  #if ENABLED(DELTA_CALIBRATION_MENU) || ENABLED(DELTA_AUTO_CALIBRATION)
+  #if (ENABLED(DELTA_CALIBRATION_MENU) || ENABLED(DELTA_AUTO_CALIBRATION)) && DISABLED(CNC_MODE)
 
     void lcd_move_z();
 
@@ -2717,7 +2721,7 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // DELTA_CALIBRATION_MENU || DELTA_AUTO_CALIBRATION
 
-  #if ENABLED(DELTA_AUTO_CALIBRATION)
+  #if ENABLED(DELTA_AUTO_CALIBRATION) && DISABLED(CNC_MODE)
 
     float lcd_probe_pt(const float &rx, const float &ry) {
       _man_probe_pt(rx, ry);
@@ -2732,7 +2736,7 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // DELTA_AUTO_CALIBRATION
 
-  #if ENABLED(DELTA_CALIBRATION_MENU)
+  #if ENABLED(DELTA_CALIBRATION_MENU) && DISABLED(CNC_MODE)
 
     void _lcd_calibrate_homing() {
       if (lcdDrawUpdate) lcd_implementation_drawmenu_static(LCD_HEIGHT >= 4 ? 1 : 0, PSTR(MSG_LEVEL_BED_HOMING));
@@ -2753,7 +2757,7 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // DELTA_CALIBRATION_MENU
 
-  #if ENABLED(DELTA_CALIBRATION_MENU) || ENABLED(DELTA_AUTO_CALIBRATION)
+  #if ENABLED(DELTA_CALIBRATION_MENU) || ENABLED(DELTA_AUTO_CALIBRATION) && DISABLED(CNC_MODE)
 
     void _recalc_delta_settings() {
       #if HAS_LEVELING
@@ -3210,19 +3214,21 @@ void kill_screen(const char* lcd_msg) {
   void lcd_control_menu() {
     START_MENU();
     MENU_BACK(MSG_MAIN);
-    MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_temperature_menu);
+    #if DISABLED(CNC_MODE)
+      MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_temperature_menu);
+    #endif
     MENU_ITEM(submenu, MSG_MOTION, lcd_control_motion_menu);
 
-    #if DISABLED(NO_VOLUMETRICS) || ENABLED(ADVANCED_PAUSE_FEATURE)
+    #if (DISABLED(NO_VOLUMETRICS) || ENABLED(ADVANCED_PAUSE_FEATURE)) && DISABLED(CNC_MODE)
       MENU_ITEM(submenu, MSG_FILAMENT, lcd_control_filament_menu);
-    #elif ENABLED(LIN_ADVANCE)
+    #elif ENABLED(LIN_ADVANCE) && DISABLED(CNC_MODE)
       MENU_ITEM_EDIT(float32, MSG_ADVANCE_K, &planner.extruder_advance_K, 0, 999);
     #endif
 
     #if HAS_LCD_CONTRAST
       MENU_ITEM_EDIT_CALLBACK(int3, MSG_CONTRAST, &lcd_contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, lcd_callback_set_contrast, true);
     #endif
-    #if ENABLED(FWRETRACT)
+    #if ENABLED(FWRETRACT) && DISABLED(CNC_MODE)
       MENU_ITEM(submenu, MSG_RETRACT, lcd_control_retract_menu);
     #endif
     #if ENABLED(DAC_STEPPER_CURRENT)
@@ -3347,9 +3353,9 @@ void kill_screen(const char* lcd_msg) {
     // Nozzle:
     // Nozzle [1-5]:
     //
-    #if HOTENDS == 1
+    #if (HOTENDS == 1) && DISABLED(CNC_MODE)
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE, &thermalManager.target_temperature[0], 0, HEATER_0_MAXTEMP - 15, watch_temp_callback_E0);
-    #else // HOTENDS > 1
+    #elif DISABLED(CNC_MODE) // HOTENDS > 1
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N1, &thermalManager.target_temperature[0], 0, HEATER_0_MAXTEMP - 15, watch_temp_callback_E0);
       MENU_MULTIPLIER_ITEM_EDIT_CALLBACK(int3, MSG_NOZZLE MSG_N2, &thermalManager.target_temperature[1], 0, HEATER_1_MAXTEMP - 15, watch_temp_callback_E1);
       #if HOTENDS > 2
@@ -3455,7 +3461,7 @@ void kill_screen(const char* lcd_msg) {
 
     #endif // PIDTEMP
 
-    #if DISABLED(SLIM_LCD_MENUS)
+    #if DISABLED(SLIM_LCD_MENUS) && DISABLED(CNC_MODE)
       //
       // Preheat Material 1 conf
       //
@@ -3472,6 +3478,7 @@ void kill_screen(const char* lcd_msg) {
 
   #if DISABLED(SLIM_LCD_MENUS)
 
+  #if DISABLED(CNC_MODE)
     void _lcd_control_temperature_preheat_settings_menu(const uint8_t material) {
       #if HOTENDS > 4
         #define MINTEMP_ALL MIN5(HEATER_0_MINTEMP, HEATER_1_MINTEMP, HEATER_2_MINTEMP, HEATER_3_MINTEMP, HEATER_4_MINTEMP)
@@ -3517,7 +3524,8 @@ void kill_screen(const char* lcd_msg) {
      *
      */
     void lcd_control_temperature_preheat_material2_settings_menu() { _lcd_control_temperature_preheat_settings_menu(1); }
-
+  #endif
+  
     void _reset_acceleration_rates() { planner.reset_acceleration_rates(); }
     #if ENABLED(DISTINCT_E_FACTORS)
       void _reset_e_acceleration_rate(const uint8_t e) { if (e == active_extruder) _reset_acceleration_rates(); }
@@ -3755,7 +3763,7 @@ void kill_screen(const char* lcd_msg) {
         }
       #endif
 
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
+      #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
         const float extrude_maxlength =
           #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
             EXTRUDE_MAXLENGTH
@@ -3963,6 +3971,7 @@ void kill_screen(const char* lcd_msg) {
       }
     #endif // PRINTCOUNTER
 
+    #if DISABLED(CNC_MODE)
     /**
      *
      * About Printer > Thermistors
@@ -4023,6 +4032,7 @@ void kill_screen(const char* lcd_msg) {
       #endif
       END_SCREEN();
     }
+    #endif
 
     /**
      *
@@ -4058,7 +4068,11 @@ void kill_screen(const char* lcd_msg) {
       STATIC_ITEM(STRING_DISTRIBUTION_DATE, true);                     // YYYY-MM-DD HH:MM
       STATIC_ITEM(MACHINE_NAME, true);                                 // My3DPrinter
       STATIC_ITEM(WEBSITE_URL, true);                                  // www.my3dprinter.com
-      STATIC_ITEM(MSG_INFO_EXTRUDERS ": " STRINGIFY(EXTRUDERS), true); // Extruders: 2
+      #if ENABLED(CNC_MODE)
+        STATIC_ITEM("CNC Mode", true);
+      #else
+        STATIC_ITEM(MSG_INFO_EXTRUDERS ": " STRINGIFY(EXTRUDERS), true); // Extruders: 2
+      #endif
       #if ENABLED(AUTO_BED_LEVELING_3POINT)
         STATIC_ITEM(MSG_3POINT_LEVELING, true);                        // 3-Point Leveling
       #elif ENABLED(AUTO_BED_LEVELING_LINEAR)
@@ -4083,7 +4097,9 @@ void kill_screen(const char* lcd_msg) {
       MENU_BACK(MSG_MAIN);
       MENU_ITEM(submenu, MSG_INFO_PRINTER_MENU, lcd_info_printer_menu);        // Printer Info >
       MENU_ITEM(submenu, MSG_INFO_BOARD_MENU, lcd_info_board_menu);            // Board Info >
-      MENU_ITEM(submenu, MSG_INFO_THERMISTOR_MENU, lcd_info_thermistors_menu); // Thermistors >
+      #if DISABLED(CNC_MODE)
+        MENU_ITEM(submenu, MSG_INFO_THERMISTOR_MENU, lcd_info_thermistors_menu); // Thermistors >
+      #endif
       #if ENABLED(PRINTCOUNTER)
         MENU_ITEM(submenu, MSG_INFO_STATS_MENU, lcd_info_stats_menu);          // Printer Statistics >
       #endif
@@ -4156,7 +4172,7 @@ void kill_screen(const char* lcd_msg) {
    * Filament Change Feature Screens
    *
    */
-  #if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE) && DISABLED(CNC_MODE)
 
     /**
      *

@@ -22,7 +22,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if ENABLED(PIDTEMP)
+#if ENABLED(PIDTEMP) && DISABLED(CNC_MODE)
 
 #include "../gcode.h"
 #include "../../module/temperature.h"

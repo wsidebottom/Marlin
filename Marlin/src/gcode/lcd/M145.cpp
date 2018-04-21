@@ -22,7 +22,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if ENABLED(ULTIPANEL)
+#if ENABLED(ULTIPANEL) && DISABLED(CNC_MODE)
 
 #include "../gcode.h"
 #include "../../lcd/ultralcd.h"
