@@ -3046,7 +3046,7 @@ void kill_screen(const char* lcd_msg) {
   void lcd_move_menu_10mm() { _goto_manual_move(10.0); }
   void lcd_move_menu_1mm()  { _goto_manual_move( 1.0); }
   void lcd_move_menu_01mm() { _goto_manual_move( 0.1); }
-  void lcd_move_menu_005mm() { _goto_manual_move( 0.05); }
+  void lcd_move_menu_001mm() { _goto_manual_move( 0.01); }
 
   void _lcd_move_distance_menu(const AxisEnum axis, const screenFunc_t func) {
     _manual_move_func_ptr = func;
@@ -3068,7 +3068,7 @@ void kill_screen(const char* lcd_msg) {
     MENU_ITEM(submenu, MSG_MOVE_10MM, lcd_move_menu_10mm);
     MENU_ITEM(submenu, MSG_MOVE_1MM, lcd_move_menu_1mm);
     MENU_ITEM(submenu, MSG_MOVE_01MM, lcd_move_menu_01mm);
-    MENU_ITEM(submenu, MSG_MOVE_005MM, lcd_move_menu_005mm);
+    MENU_ITEM(submenu, MSG_MOVE_001MM, lcd_move_menu_001mm);
     END_MENU();
   }
   void lcd_move_get_x_amount()        { _lcd_move_distance_menu(X_AXIS, lcd_move_x); }
@@ -3220,6 +3220,8 @@ void kill_screen(const char* lcd_msg) {
     MENU_BACK(MSG_MAIN);
     #if !defined(CNC_MODE)
       MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_temperature_menu);
+    #else
+      MENU_ITEM(submenu, MSG_SPINDLE_COOLANT, lcd_control_spindle_coolant_menu);
     #endif
     MENU_ITEM(submenu, MSG_MOTION, lcd_control_motion_menu);
 
@@ -3340,6 +3342,7 @@ void kill_screen(const char* lcd_msg) {
 
   #endif // PIDTEMP
 
+  #if !defined(CNC_MODE)
   /**
    *
    * "Control" > "Temperature" submenu
@@ -3479,6 +3482,34 @@ void kill_screen(const char* lcd_msg) {
 
     END_MENU();
   }
+
+  #else
+    /**
+   *
+   * "Control" > "Spindle & Coolant" submenu
+   *
+   */
+  void lcd_control_spindle_coolant_menu() {
+    START_MENU();
+
+    //
+    // ^ Control
+    //
+    MENU_BACK(MSG_CONTROL);
+
+    //
+    // Spindle:
+    //
+    MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_SPINDLE_SPEED, &fanSpeeds[0], 0, 255);
+x
+    //
+    // Coolant:
+    //
+    MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLANT, &new_fanSpeeds[0], 3, 255);
+ 
+    END_MENU();
+  }
+  #endif
 
   #if DISABLED(SLIM_LCD_MENUS)
 

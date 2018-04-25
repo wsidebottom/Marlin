@@ -448,8 +448,8 @@
     #define MSG_MOVE_E                        _UxGT("Move A")
   #endif
 #endif
-#ifndef MSG_MOVE_01MM
-  #define MSG_MOVE_005MM                       _UxGT("Move 0.05mm")
+#ifndef MSG_MOVE_001MM
+  #define MSG_MOVE_001MM                       _UxGT("Move 0.01mm")
 #endif
 #ifndef MSG_MOVE_01MM
   #define MSG_MOVE_01MM                       _UxGT("Move 0.1mm")
@@ -474,6 +474,12 @@
 #endif
 #ifndef MSG_BED
   #define MSG_BED                             _UxGT("Bed")
+#endif
+#ifndef MSG_SPINDLE_SPEED
+  #define MSG_SPINDLE_SPEED                   _UxGT("Spindle speed")
+#endif
+#ifndef MSG_COOLANT
+  #define MSG_COOLANT                         _UxGT("Coolant")
 #endif
 #ifndef MSG_FAN_SPEED
   #define MSG_FAN_SPEED                       _UxGT("Fan speed")
@@ -622,6 +628,9 @@
 #endif
 #ifndef MSG_TEMPERATURE
   #define MSG_TEMPERATURE                     _UxGT("Temperature")
+#endif
+#ifndef MSG_SPINDLE_COOLANT
+  #define MSG_SPINDLE_COOLANT                 _UxGT("Spindle & Coolant")
 #endif
 #ifndef MSG_MOTION
   #define MSG_MOTION                          _UxGT("Motion")
