@@ -153,9 +153,11 @@
         default:
           if (c == '\n') {
             switch (state) {
+              #if !defined(CNC_MODE)
               case state_M108:
                 wait_for_user = wait_for_heatup = false;
                 break;
+              #endif
               case state_M112:
                 killed_by_M112 = true;
                 break;

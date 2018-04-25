@@ -27,12 +27,14 @@
 #include "../gcode.h"
 #include "../../Marlin.h" // for wait_for_heatup, kill, quickstop_stepper
 
+#if !defined(CNC_MODE)
 /**
  * M108: Stop the waiting for heaters in M109, M190, M303. Does not affect the target temperature.
  */
 void GcodeSuite::M108() {
   wait_for_heatup = false;
 }
+#endif
 
 /**
  * M112: Emergency Stop

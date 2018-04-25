@@ -86,4 +86,12 @@ void GcodeSuite::M502() {
       SERIAL_ECHOLNPGM_P(command_queue_port[cmd_queue_index_r], "EEPROM OK");
     }
   }
+
+  /**
+   * M505: Initalise EEPROM Contents
+   */
+  void GcodeSuite::M505() {
+    if (settings.init_eeprom()) SERIAL_ECHOLNPGM_P(command_queue_port[cmd_queue_index_r], "EEPROM INITIALIZED");
+    else SERIAL_ECHOLNPGM_P(command_queue_port[cmd_queue_index_r], "EEPROM NOT INITIALIZED");
+  }
 #endif

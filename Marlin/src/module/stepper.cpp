@@ -2117,7 +2117,13 @@ void Stepper::report_positions() {
   CRITICAL_SECTION_START;
   const long xpos = count_position[X_AXIS],
              ypos = count_position[Y_AXIS],
-             zpos = count_position[Z_AXIS];
+             zpos = count_position[Z_AXIS]
+    #if defined(CNC_MODE)
+             ,
+             apos = count_position[E_AXIS];
+    #else
+             ;
+    #endif
   CRITICAL_SECTION_END;
 
   #if CORE_IS_XY || CORE_IS_XZ || IS_DELTA || IS_SCARA
@@ -2140,6 +2146,11 @@ void Stepper::report_positions() {
     SERIAL_PROTOCOLPGM(" Z:");
   #endif
   SERIAL_PROTOCOL(zpos);
+
+  #if defined(CNC_MODE)
+    SERIAL_PROTOCOLPGM(" A:");
+    SERIAL_PROTOCOL(apos);
+  #endif
 
   SERIAL_EOL();
 }

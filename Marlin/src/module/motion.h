@@ -42,7 +42,7 @@ extern float current_position[XYZE],  // High-level current tool position
              destination[XYZE];       // Destination for a move
 
 // Scratch space for a cartesian result
-extern float cartes[XYZ];
+extern float cartes[XYZE];
 
 // Until kinematics.cpp is created, declare this here
 #if IS_KINEMATIC
@@ -204,13 +204,13 @@ void homeaxis(const AxisEnum axis);
  */
 #if HAS_WORKSPACE_OFFSET
   #if HAS_HOME_OFFSET
-    extern float home_offset[XYZ];
+    extern float home_offset[XYZE];
   #endif
   #if HAS_POSITION_SHIFT
-    extern float position_shift[XYZ];
+    extern float position_shift[XYZE];
   #endif
   #if HAS_HOME_OFFSET && HAS_POSITION_SHIFT
-    extern float workspace_offset[XYZ];
+    extern float workspace_offset[XYZE];
     #define WORKSPACE_OFFSET(AXIS) workspace_offset[AXIS]
   #elif HAS_HOME_OFFSET
     #define WORKSPACE_OFFSET(AXIS) home_offset[AXIS]

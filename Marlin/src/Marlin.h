@@ -150,7 +150,8 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
 
 #if ENABLED(G38_PROBE_TARGET)
   extern bool G38_move,        // flag to tell the interrupt handler that a G38 command is being run
-              G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
+              G38_endstop_hit, // flag from the interrupt handler to indicate if the endstop went active
+              G38_2;           // flag if function call is for G38.2
 #endif
 
 /**
@@ -173,7 +174,9 @@ inline bool IsStopped() { return !Running; }
 
 extern bool axis_known_position[XYZ];
 extern bool axis_homed[XYZ];
-extern volatile bool wait_for_heatup;
+#if !defined(CNC_MODE)
+  extern volatile bool wait_for_heatup;
+#endif
 
 #if HAS_RESUME_CONTINUE
   extern volatile bool wait_for_user;

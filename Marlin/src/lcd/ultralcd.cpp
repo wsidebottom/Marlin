@@ -2572,7 +2572,7 @@ void kill_screen(const char* lcd_msg) {
     #if ENABLED(DELTA) && !defined(CNC_MODE)
       if (axis_homed[X_AXIS] && axis_homed[Y_AXIS] && axis_homed[Z_AXIS])
     #endif
-        MENU_ITEM(submenu, MSG_MOVE_AXIS, lcd_move_menu);
+    MENU_ITEM(submenu, MSG_MOVE_AXIS, lcd_move_menu);
 
     //
     // Auto Home
@@ -3042,9 +3042,11 @@ void kill_screen(const char* lcd_msg) {
     move_menu_scale = scale;
     lcd_goto_screen(_manual_move_func_ptr);
   }
+  void lcd_move_menu_50mm() { _goto_manual_move(50.0); }
   void lcd_move_menu_10mm() { _goto_manual_move(10.0); }
   void lcd_move_menu_1mm()  { _goto_manual_move( 1.0); }
   void lcd_move_menu_01mm() { _goto_manual_move( 0.1); }
+  void lcd_move_menu_005mm() { _goto_manual_move( 0.05); }
 
   void _lcd_move_distance_menu(const AxisEnum axis, const screenFunc_t func) {
     _manual_move_func_ptr = func;
@@ -3062,9 +3064,11 @@ void kill_screen(const char* lcd_msg) {
       }
     }
     MENU_BACK(MSG_MOVE_AXIS);
+    MENU_ITEM(submenu, MSG_MOVE_50MM, lcd_move_menu_50mm);
     MENU_ITEM(submenu, MSG_MOVE_10MM, lcd_move_menu_10mm);
     MENU_ITEM(submenu, MSG_MOVE_1MM, lcd_move_menu_1mm);
     MENU_ITEM(submenu, MSG_MOVE_01MM, lcd_move_menu_01mm);
+    MENU_ITEM(submenu, MSG_MOVE_005MM, lcd_move_menu_005mm);
     END_MENU();
   }
   void lcd_move_get_x_amount()        { _lcd_move_distance_menu(X_AXIS, lcd_move_x); }

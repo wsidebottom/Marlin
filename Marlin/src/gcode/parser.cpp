@@ -49,6 +49,9 @@ char *GCodeParser::command_ptr,
      *GCodeParser::string_arg,
      *GCodeParser::value_ptr;
 char GCodeParser::command_letter;
+#if defined(CNC_MODE)
+  char GCodeParser::command_letter_secondary;    // CNC_MODE grbl compatibility
+#endif
 int GCodeParser::codenum;
 #if USE_GCODE_SUBCODES
   uint8_t GCodeParser::subcode;
@@ -118,17 +121,33 @@ void GCodeParser::parse(char *p) {
   }
 
   // Bail if the letter is not G, M, or T
-  switch (letter) { case 'G': case 'M': case 'T': break; default: return; }
+  // CNC_MODE uses grbl compatible commands also
+  switch (letter) {
+    case 'G': case 'M': case 'T': break;
+    #if defined(CNC_MODE)
+      case 'X': case 'Y': case 'Z': case 'A': case 'F': case 'S': case '$': break;
+    #endif
+    default: return;
+  }
 
   // Skip spaces to get the numeric part
   while (*p == ' ') p++;
 
   // Bail if there's no command code number
-  if (!NUMERIC(*p)) return;
+  #if defined(CNC_MODE)
+    if ((!NUMERIC(*p)) && (letter != '$')) return;
+  #else
+    if (!NUMERIC(*p)) return;
+  #endif
 
   // Save the command letter at this point
   // A '?' signifies an unknown command
   command_letter = letter;
+
+  // CNC_MODE specifics
+  #if defined(CNC_MODE)
+    if (letter == '$') { command_letter_secondary = *p++; return; }
+  #endif
 
   // Get the code number - integer digits only
   codenum = 0;

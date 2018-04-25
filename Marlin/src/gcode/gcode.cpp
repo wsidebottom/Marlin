@@ -32,6 +32,10 @@ GcodeSuite gcode;
 #include "queue.h"
 #include "../module/motion.h"
 
+#if defined(CNC_MODE)
+  #include"../module/cnc.h"
+#endif
+
 #if ENABLED(PRINTCOUNTER)
   #include "../module/printcounter.h"
 #endif
@@ -260,8 +264,10 @@ void GcodeSuite::process_parsed_command(
 
       #if ENABLED(G38_PROBE_TARGET)
         case 38:                                                  // G38.2 & G38.3
-          if (parser.subcode == 2 || parser.subcode == 3)
-            G38(parser.subcode == 2);
+          if (parser.subcode == 2 || parser.subcode == 3) {
+            G38_2 = parser.subcode;
+            G38();
+          }
           break;
       #endif
 
@@ -277,6 +283,8 @@ void GcodeSuite::process_parsed_command(
       #if ENABLED(DEBUG_GCODE_PARSER)
         case 800: parser.debug(); break;                          // G800: GCode Parser Test for G
       #endif
+
+      default: parser.unknown_command_error();
     }
     break;
 
@@ -486,11 +494,11 @@ void GcodeSuite::process_parsed_command(
         case 218: M218(); break;                                  // M218: Set a tool offset
       #endif
 
-      #if !defined(CNC_MODE)
         case 220: M220(); break;                                    // M220: Set Feedrate Percentage: S<percent> ("FR" on your LCD)
+      #if !defined(CNC_MODE)
         case 221: M221(); break;                                    // M221: Set Flow Percentage
-        case 226: M226(); break;                                    // M226: Wait until a pin reaches a state
       #endif
+        case 226: M226(); break;                                    // M226: Wait until a pin reaches a state
 
       #if HAS_SERVOS
         case 280: M280(); break;                                  // M280: Set servo position absolute
@@ -580,6 +588,9 @@ void GcodeSuite::process_parsed_command(
       #endif
       #if ENABLED(EEPROM_SETTINGS)
         case 504: M504(); break;                                  // M504: Validate EEPROM contents
+        case 505:                                                 // M505: Initialize EEPROM - Confirmed with 'Y' parameter eg. M505 Y<cr>
+          if(parser.string_arg[0]=='Y') M505();
+          break;
       #endif
 
       #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
@@ -666,10 +677,31 @@ void GcodeSuite::process_parsed_command(
       #endif
 
       case 999: M999(); break;                                    // M999: Restart after being Stopped
+
+      default: parser.unknown_command_error();
     }
     break;
 
     case 'T': T(parser.codenum); break;                           // Tn: Tool Change
+
+    #if defined(CNC_MODE)
+      case 'X': case 'Y': case 'Z': case 'A': case 'F': {
+        G0_G1();
+      }
+      break;
+
+      case '$': switch (parser.command_letter_secondary) {        // grbl compatiblity
+        case '$': break;                                          // Prints settings in grbl format
+        case 'H': G28(false); break;                              // Home all axes
+        case 'G': cncManager.report_gcode_modes(); break;         // Prints gcode parser state
+        case 'C': break;                                          // Set check g-code mode [IDLE/CHECK]
+        case 'X': M999(); break;                                  // Reset after being stopped
+        case '#': break;                                          // Print Grbl NGC parameters
+        case 'I': cncManager.report_build_info(); break;                                          // Print build info.
+        default: parser.unknown_command_error(); break;           // Unknown Command Error
+        }
+        break;
+    #endif
 
     default: parser.unknown_command_error();
   }

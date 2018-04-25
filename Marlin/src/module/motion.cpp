@@ -30,6 +30,10 @@
 #include "planner.h"
 #include "temperature.h"
 
+#if defined(CNC_MODE)
+  #include "cnc.h"
+#endif
+
 #include "../gcode/gcode.h"
 
 #include "../inc/MarlinConfig.h"
@@ -115,7 +119,7 @@ const float homing_feedrate_mm_s[4] PROGMEM = {
 };
 
 // Cartesian conversion result goes here:
-float cartes[XYZ];
+float cartes[XYZE];
 
 // Until kinematics.cpp is created, create this here
 #if IS_KINEMATIC
@@ -129,16 +133,16 @@ float cartes[XYZ];
 #if HAS_WORKSPACE_OFFSET
   #if HAS_POSITION_SHIFT
     // The distance that XYZ has been offset by G92. Reset by G28.
-    float position_shift[XYZ] = { 0 };
+    float position_shift[XYZE] = { 0 };
   #endif
   #if HAS_HOME_OFFSET
     // This offset is added to the configured home position.
     // Set by M206, M428, or menu item. Saved to EEPROM.
-    float home_offset[XYZ] = { 0 };
+    float home_offset[XYZE] = { 0 };
   #endif
   #if HAS_HOME_OFFSET && HAS_POSITION_SHIFT
     // The above two are combined to save on computes
-    float workspace_offset[XYZ] = { 0 };
+    float workspace_offset[XYZE] = { 0 };
   #endif
 #endif
 
@@ -156,7 +160,11 @@ void report_current_position() {
   SERIAL_PROTOCOL(LOGICAL_Y_POSITION(current_position[Y_AXIS]));
   SERIAL_PROTOCOLPGM(" Z:");
   SERIAL_PROTOCOL(LOGICAL_Z_POSITION(current_position[Z_AXIS]));
-  SERIAL_PROTOCOLPGM(" E:");
+  #if defined(CNC_MODE)
+    SERIAL_PROTOCOLPGM(" A:");
+  #else
+    SERIAL_PROTOCOLPGM(" E:");
+  #endif
   SERIAL_PROTOCOL(current_position[E_AXIS]);
 
   stepper.report_positions();
@@ -626,7 +634,11 @@ float soft_endstop_min[XYZ] = { X_MIN_BED, Y_MIN_BED, Z_MIN_POS },
     while (--segments) {
 
       static millis_t next_idle_ms = millis() + 200UL;
-      thermalManager.manage_heater();  // This returns immediately if not really needed.
+      #if !defined(CNC_MODE)
+        thermalManager.manage_heater();  // This returns immediately if not really needed.
+      #else
+        cncManager.manage();
+      #endif
       if (ELAPSED(millis(), next_idle_ms)) {
         next_idle_ms = millis() + 200UL;
         idle();
@@ -739,7 +751,11 @@ float soft_endstop_min[XYZ] = { X_MIN_BED, Y_MIN_BED, Z_MIN_POS },
       // Calculate and execute the segments
       while (--segments) {
         static millis_t next_idle_ms = millis() + 200UL;
-        thermalManager.manage_heater();  // This returns immediately if not really needed.
+        #if !defined(CNC_MODE)
+          thermalManager.manage_heater();  // This returns immediately if not really needed.
+        #else
+          cncManager.manage();
+        #endif
         if (ELAPSED(millis(), next_idle_ms)) {
           next_idle_ms = millis() + 200UL;
           idle();

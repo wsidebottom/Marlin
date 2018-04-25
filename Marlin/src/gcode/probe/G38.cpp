@@ -97,7 +97,7 @@ static bool G38_run_probe() {
  *
  * Like G28 except uses Z min probe for all axes
  */
-void GcodeSuite::G38(const bool is_38_2) {
+void GcodeSuite::G38() {
   // Get X Y Z E F
   get_destination_from_command();
 
@@ -108,7 +108,7 @@ void GcodeSuite::G38(const bool is_38_2) {
     if (FABS(destination[i] - current_position[i]) >= G38_MINIMUM_MOVE) {
       if (!parser.seenval('F')) feedrate_mm_s = homing_feedrate((AxisEnum)i);
       // If G38.2 fails throw an error
-      if (!G38_run_probe() && is_38_2) {
+      if (!G38_run_probe() && G38_2) {
         SERIAL_ERROR_START();
         SERIAL_ERRORLNPGM("Failed to reach target");
       }
@@ -116,6 +116,7 @@ void GcodeSuite::G38(const bool is_38_2) {
     }
 
   clean_up_after_endstop_or_probe_move();
+  G38_2=false;
 }
 
 #endif // G38_PROBE_TARGET

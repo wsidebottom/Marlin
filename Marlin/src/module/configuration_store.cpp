@@ -1962,7 +1962,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
         SERIAL_CHAR_P(port, parser.temp_units_code());
         SERIAL_ECHOPGM_P(port, " ; Units in ");
         serialprintPGM_P(port, parser.temp_units_name());
-      #else
+      #elif !defined(CNC_MODE)
         #define TEMP_UNIT(N) (N)
         SERIAL_ECHOLNPGM_P(port, "  M149 C ; Units in Celsius");
       #endif
@@ -2268,7 +2268,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
 
     #endif // [XYZ]_DUAL_ENDSTOPS
 
-    #if ENABLED(ULTIPANEL)
+    #if ENABLED(ULTIPANEL) && !defined(CNC_MODE)
       if (!forReplay) {
         CONFIG_ECHO_START;
         SERIAL_ECHOLNPGM_P(port, "Material heatup parameters:");

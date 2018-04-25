@@ -35,7 +35,7 @@
  * commands to Marlin, and lines will be checked for sequentiality.
  * M110 N<int> sets the current line number.
  */
-extern long gcode_LastN, Stopped_gcode_LastN;
+extern long gcode_N, gcode_LastN, Stopped_gcode_LastN;
 
 /**
  * GCode Command Queue
@@ -50,6 +50,10 @@ extern uint8_t commands_in_queue, // Count of commands in the queue
                cmd_queue_index_r; // Ring buffer read position
 
 extern char command_queue[BUFSIZE][MAX_CMD_SIZE];
+
+#if defined(CNC_MODE)
+  extern char serial_previous;
+#endif
 
 /*
  * The port that the command was received on

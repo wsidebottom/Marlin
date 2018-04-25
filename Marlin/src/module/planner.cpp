@@ -69,6 +69,7 @@
 #include "../lcd/ultralcd.h"
 #include "../core/language.h"
 #include "../gcode/parser.h"
+#include "../gcode/gcode.h"
 
 #include "../Marlin.h"
 
@@ -2059,6 +2060,11 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
     }
   #endif
 
+  #if defined(CNC_MODE)
+    // grbl compatibility
+    gcode.st_get_realtime_rate = fr_mm_s;
+  #endif
+
   // The target position of the tool in absolute steps
   // Calculate target position in absolute steps
   const int32_t target[ABCE] = {
@@ -2080,7 +2086,7 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
     #endif
   }
 
-  /* <-- add a slash to enable
+  //* <-- add a slash to enable
     SERIAL_ECHOPAIR("  buffer_segment FR:", fr_mm_s);
     #if IS_KINEMATIC
       SERIAL_ECHOPAIR(" A:", a);
@@ -2102,7 +2108,11 @@ void Planner::buffer_segment(const float &a, const float &b, const float &c, con
     #endif
     SERIAL_ECHOPAIR(" (", position[Z_AXIS]);
     SERIAL_ECHOPAIR("->", target[Z_AXIS]);
-    SERIAL_ECHOPAIR(") E:", e);
+    #if defined(CNC_MODE)
+      SERIAL_ECHOPAIR(") A:", e);
+    #else
+      SERIAL_ECHOPAIR(") E:", e);
+    #endif
     SERIAL_ECHOPAIR(" (", position[E_AXIS]);
     SERIAL_ECHOPAIR("->", target[E_AXIS]);
     SERIAL_ECHOLNPGM(")");

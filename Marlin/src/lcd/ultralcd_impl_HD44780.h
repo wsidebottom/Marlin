@@ -718,11 +718,11 @@ static void lcd_implementation_status_screen() {
       // When everything is ok you see a constant 'X'.
 
       _draw_axis_label(X_AXIS, PSTR(MSG_X), blink);
-      lcd_put_u8str(ftostr52sp(FIXFLOAT(LOGICAL_X_POSITION(current_position[X_AXIS]))));
+      lcd_put_u8str(ftostr52sign(FIXFLOAT(LOGICAL_X_POSITION(current_position[X_AXIS]))));
       
       lcd_moveto(11, 0);
       _draw_axis_label(Y_AXIS, PSTR(MSG_Y), blink);
-      lcd_put_u8str(ftostr52sp(FIXFLOAT(LOGICAL_Y_POSITION(current_position[Y_AXIS]))));
+      lcd_put_u8str(ftostr52sign(FIXFLOAT(LOGICAL_Y_POSITION(current_position[Y_AXIS]))));
 
     #endif // LCD_WIDTH >= 20
 
@@ -732,10 +732,10 @@ static void lcd_implementation_status_screen() {
 
     lcd_moveto(0, 1);
     _draw_axis_label(Z_AXIS, PSTR(MSG_Z), blink);
-    lcd_put_u8str(ftostr52sp(FIXFLOAT(LOGICAL_Z_POSITION(current_position[Z_AXIS]))));
+    lcd_put_u8str(ftostr52sign(FIXFLOAT(LOGICAL_Z_POSITION(current_position[Z_AXIS]))));
 
     lcd_moveto(11, 1);
-    _draw_axis_label(E_AXIS, PSTR(MSG_E), blink);
+    _draw_axis_label(E_AXIS, PSTR(MSG_E), true);
     lcd_put_u8str(ftostr52sign(FIXFLOAT(LOGICAL_E_POSITION(current_position[E_AXIS]))));
 
   #endif // CNC_MODE

@@ -520,7 +520,7 @@
 #if ENABLED(ARC_SUPPORT)
   #define MM_PER_ARC_SEGMENT  1   // Length of each arc segment
   #define N_ARC_CORRECTION   25   // Number of intertpolated segments between corrections
-  //#define ARC_P_CIRCLES         // Enable the 'P' parameter to specify complete circles
+  #define ARC_P_CIRCLES         // Enable the 'P' parameter to specify complete circles
   #define CNC_WORKSPACE_PLANES    // Allow G2/G3 to operate in XY, ZX, or YZ planes
 #endif
 
@@ -608,7 +608,7 @@
 //#define NO_TIMEOUTS 1000 // Milliseconds
 
 // Some clients will have this feature soon. This could make the NO_TIMEOUTS unnecessary.
-#define ADVANCED_OK
+//#define ADVANCED_OK
 
 // @section extras
 
@@ -1055,7 +1055,7 @@
 /**
  * M43 - display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins
  */
-//#define PINS_DEBUGGING
+#define PINS_DEBUGGING
 
 /**
  * Include capabilities in M115 output
@@ -1244,6 +1244,22 @@
 #if ENABLED(NANODLP_Z_SYNC)
   //#define NANODLP_ALL_AXIS  // Enables "Z_move_comp" output on any axis move.
                               // Default behaviour is limited to Z axis only.
+#endif
+
+// CNC Mode Specifics
+#if defined(CNC_MODE)
+  #ifndef USE_EXECUTE_COMMANDS_IMMEDIATE
+    #define USE_EXECUTE_COMMANDS_IMMEDIATE
+  #endif
+  #ifndef ARC_P_CIRCLES
+    #define ARC_P_CIRCLES
+  #endif
+  #ifndef CNC_WORKSPACE_PLANES
+    #define CNC_WORKSPACE_PLANES
+  #endif
+  #ifndef CNC_COORDINATE_SYSTEMS
+    #define CNC_COORDINATE_SYSTEMS
+  #endif
 #endif
 
 #endif // CONFIGURATION_ADV_H

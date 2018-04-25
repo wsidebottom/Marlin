@@ -33,6 +33,10 @@
 #include "../module/temperature.h"
 #include "../Marlin.h"
 
+#if defined(CNC_MODE)
+  #include "../module/cnc.h"
+#endif
+
 #if HAS_COLOR_LEDS
   #include "../feature/leds/leds.h"
 #endif
@@ -58,6 +62,10 @@ uint8_t commands_in_queue = 0, // Count of commands in the queue
         cmd_queue_index_w = 0; // Ring buffer write position
 
 char command_queue[BUFSIZE][MAX_CMD_SIZE];
+
+#if defined(CNC_MODE)
+  char serial_previous;
+#endif
 
 /*
  * The port that the command was received on
@@ -291,6 +299,14 @@ inline void get_serial_commands() {
 
       char serial_char = c;
 
+      // grbl compatability
+      #if defined(CNC_MODE)
+        if (serial_char == '?' && ( serial_previous == '\n' || serial_previous == '\r' || serial_previous == '?')) {
+          cncManager.report_realtime_status();
+        }
+        else
+      #endif
+
       /**
        * If the character ends the line
        */
@@ -302,6 +318,8 @@ inline void get_serial_commands() {
         if (!serial_count[i]) {
           #if !defined(CNC_MODE)
             thermalManager.manage_heater();
+          #else
+            cncManager.manage();
           #endif
           continue;
         }
@@ -398,6 +416,10 @@ inline void get_serial_commands() {
         if (serial_char == ';') serial_comment_mode[i] = true;
         if (!serial_comment_mode[i]) serial_line_buffer[i][serial_count[i]++] = serial_char;
       }
+
+    #if defined(CNC_MODE)
+      serial_previous=serial_char;
+    #endif
     } // for NUM_SERIAL
   } // queue has space, serial has data
 }
@@ -474,6 +496,8 @@ inline void get_serial_commands() {
         if (!sd_count) {
           #if !defined(CNC_MODE)
             thermalManager.manage_heater();
+          #else
+            cncManager.manage();
           #endif
           continue;
         }

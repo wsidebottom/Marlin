@@ -35,6 +35,10 @@
 #include "motion.h"
 #include "temperature.h"
 
+#if defined(CNC_MODE)
+  #include "cnc.h"
+#endif
+
 #include "../Marlin.h"
 #include "../core/language.h"
 #include "../gcode/queue.h"
@@ -127,6 +131,8 @@ void cubic_b_spline(const float position[NUM_AXIS], const float target[NUM_AXIS]
 
     #if !defined(CNC_MODE)
       thermalManager.manage_heater();
+    #else
+      cncManager.manage();
     #endif
     millis_t now = millis();
     if (ELAPSED(now, next_idle_ms)) {

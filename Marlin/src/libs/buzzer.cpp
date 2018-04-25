@@ -27,6 +27,10 @@
 #include "buzzer.h"
 #include "../module/temperature.h"
 
+#if defined(CNC_MODE)
+  #include "../module/cnc.h"
+#endif
+
 Buzzer::state_t Buzzer::state;
 CircularQueue<tone_t, TONE_QUEUE_LENGTH> Buzzer::buffer;
 Buzzer buzzer;
@@ -44,6 +48,8 @@ void Buzzer::tone(const uint16_t duration, const uint16_t frequency/*=0*/) {
     tick();
     #if !defined(CNC_MODE)
       thermalManager.manage_heater();
+    #else
+      cncManager.manage();
     #endif
   }
   tone_t tone = { duration, frequency };

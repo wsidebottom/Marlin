@@ -31,7 +31,7 @@
 
 #include "../inc/MarlinConfig.h"
 
-//#define DEBUG_GCODE_PARSER
+#define DEBUG_GCODE_PARSER
 #if ENABLED(DEBUG_GCODE_PARSER)
   #include "../libs/hex_print_routines.h"
 #endif
@@ -70,15 +70,17 @@ public:
     static float linear_unit_factor, volumetric_unit_factor;
   #endif
 
-  #if ENABLED(TEMPERATURE_UNITS_SUPPORT) && !defined(CNC_MODE)
+  #if ENABLED(TEMPERATURE_UNITS_SUPPORT)
     static TempUnit input_temp_units;
   #endif
 
   // Command line state
   static char *command_ptr,               // The command, so it can be echoed
               *string_arg;                // string of command line
-
-  static char command_letter;             // G, M, or T
+  static char command_letter;             // G, M, T or grbl like commands (CNC_MODE only)
+  #if defined(CNC_MODE)
+    static char command_letter_secondary; // CNC_MODE grbl compatibility
+  #endif
   static int codenum;                     // 123
   #if USE_GCODE_SUBCODES
     static uint8_t subcode;               // .1
@@ -159,7 +161,11 @@ public:
 
   // Seen any axis parameter
   static bool seen_axis() {
-    return SEEN_TEST('X') || SEEN_TEST('Y') || SEEN_TEST('Z') || SEEN_TEST('E');
+    #if !defined(CNC_MODE)
+      return SEEN_TEST('X') || SEEN_TEST('Y') || SEEN_TEST('Z') || SEEN_TEST('E');
+    #else
+      return SEEN_TEST('X') || SEEN_TEST('Y') || SEEN_TEST('Z') || SEEN_TEST('A');
+    #endif
   }
 
   // Populate all fields by parsing a single line of GCode

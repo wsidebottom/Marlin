@@ -273,6 +273,20 @@ public:
     static WorkspacePlane workspace_plane;
   #endif
 
+  #if ENABLED(SPINDLE_LASER_PWM)
+    static uint8_t spindle_mode,
+                   spindle_laser_power;
+  #endif
+
+  #if defined(CNC_MODE)
+    // grbl compatibility
+    static float st_get_realtime_rate;
+    //sys.spindle_speed = spindle_laser_power with max rpm
+
+    // Coolant
+    static uint8_t coolant_mode;
+  #endif
+
   #define MAX_COORDINATE_SYSTEMS 9
   #if ENABLED(CNC_COORDINATE_SYSTEMS)
     static int8_t active_coordinate_system;
@@ -406,7 +420,7 @@ private:
   #endif
 
   #if ENABLED(G38_PROBE_TARGET)
-    static void G38(const bool is_38_2);
+    static void G38();
   #endif
 
   #if HAS_MESH
@@ -610,8 +624,9 @@ private:
     static void M218();
   #endif
 
-  #if !defined(CNC_MODE)
     static void M220();
+
+  #if !defined(CNC_MODE)
     static void M221();
   #endif
 
@@ -709,13 +724,14 @@ private:
   #endif
   #if ENABLED(EEPROM_SETTINGS)
     static void M504();
+    static void M505();
   #endif
 
   #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
     static void M540();
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FEATURE) && !defined(CNC_MODE)
+  #if ENABLED(ADVANCED_PAUSE_FEATURE)
     static void M600();
     static void M603();
   #endif
@@ -724,7 +740,7 @@ private:
     static void M605();
   #endif
 
-  #if IS_KINEMATIC && !defined(CNC_MODE)
+  #if IS_KINEMATIC
     static void M665();
   #endif
 
@@ -732,7 +748,7 @@ private:
     static void M666();
   #endif
 
-  #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES) && !defined(CNC_MODE)
+  #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
     static void M701();
     static void M702();
   #endif

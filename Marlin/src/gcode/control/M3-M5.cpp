@@ -30,7 +30,16 @@
 #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
   #include "../../module/printcounter.h"
 #endif
-// print_job_timer.start();
+
+uint8_t GcodeSuite::spindle_mode,
+        GcodeSuite::spindle_laser_power;
+
+#if defined(CNC_MODE)
+  // grbl compatibility
+  float GcodeSuite::st_get_realtime_rate;
+
+  uint8_t GcodeSuite::coolant_mode;
+#endif
 
 /**
  * M3: Spindle Clockwise
@@ -76,13 +85,15 @@ inline void delay_for_power_down() { gcode.dwell(SPINDLE_LASER_POWERDOWN_DELAY);
  */
 
 inline void ocr_val_mode() {
-  uint8_t spindle_laser_power = parser.value_byte();
+  gcode.spindle_laser_power = parser.value_byte();
   WRITE(SPINDLE_LASER_ENABLE_PIN, SPINDLE_LASER_ENABLE_INVERT); // turn spindle on (active low)
-  if (SPINDLE_LASER_PWM_INVERT) spindle_laser_power = 255 - spindle_laser_power;
-  analogWrite(SPINDLE_LASER_PWM_PIN, spindle_laser_power);
+  if (SPINDLE_LASER_PWM_INVERT) gcode.spindle_laser_power = 255 - gcode.spindle_laser_power;
+  analogWrite(SPINDLE_LASER_PWM_PIN, gcode.spindle_laser_power);
 }
 
 void GcodeSuite::M3_M4(bool is_M3) {
+
+  if(is_M3) spindle_mode=1; else spindle_mode=2;
 
   stepper.synchronize();   // wait until previous movement commands (G0/G0/G2/G3) have completed before playing with the spindle
   #if SPINDLE_DIR_CHANGE
@@ -146,6 +157,7 @@ void GcodeSuite::M3_M4(bool is_M3) {
  * M5 turn off spindle
  */
 void GcodeSuite::M5() {
+  spindle_mode=0;
   stepper.synchronize();
   WRITE(SPINDLE_LASER_ENABLE_PIN, !SPINDLE_LASER_ENABLE_INVERT);
   #if ENABLED(SPINDLE_LASER_PWM)

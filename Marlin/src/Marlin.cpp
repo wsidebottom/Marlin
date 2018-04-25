@@ -38,6 +38,11 @@
 #include "module/probe.h"
 #include "module/temperature.h"
 #include "sd/cardreader.h"
+
+#if defined(CNC_MODE)
+  #include "module/cnc.h"
+#endif
+
 #include "module/configuration_store.h"
 #include "module/printcounter.h" // PrintCounter or Stopwatch
 #ifdef ARDUINO
@@ -109,7 +114,8 @@
 
 #if ENABLED(G38_PROBE_TARGET)
   bool G38_move = false,
-       G38_endstop_hit = false;
+       G38_endstop_hit = false,
+       G38_2 = false;
 #endif
 
 #if ENABLED(DELTA)
@@ -179,8 +185,10 @@ bool axis_homed[XYZ] = { false }, axis_known_position[XYZ] = { false };
   #endif
 #endif
 
-// For M109 and M190, this flag may be cleared (by M108) to exit the wait loop
-volatile bool wait_for_heatup = true;
+#if !defined(CNC_MODE)
+  // For M109 and M190, this flag may be cleared (by M108) to exit the wait loop
+  volatile bool wait_for_heatup = true;
+#endif
 
 // For M0/M1, this flag may be cleared (by M108) to exit the wait-for-user loop
 #if HAS_RESUME_CONTINUE
@@ -534,6 +542,8 @@ void idle(
 
   #if !defined(CNC_MODE)
     thermalManager.manage_heater();
+  #else
+    cncManager.manage();
   #endif
 
   #if ENABLED(PRINTCOUNTER)
@@ -926,7 +936,9 @@ void loop() {
         #if FAN_COUNT > 0
           for (uint8_t i = 0; i < FAN_COUNT; i++) fanSpeeds[i] = 0;
         #endif
-        wait_for_heatup = false;
+        #if !defined(CNC_MODE)
+          wait_for_heatup = false;
+        #endif
       }
     #endif // SDSUPPORT && ULTIPANEL
 

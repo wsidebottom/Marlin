@@ -29,6 +29,10 @@
 #include "../../module/planner.h"
 #include "../../module/temperature.h"
 
+#if defined(CNC_MODE)
+  #include "../../module/cnc.h"
+#endif
+
 #if ENABLED(DELTA)
   #include "../../module/delta.h"
 #elif ENABLED(SCARA)
@@ -157,6 +161,8 @@ void plan_arc(
 
     #if !defined(CNC_MODE)
       thermalManager.manage_heater();
+    #else
+      cncManager.manage();
     #endif
     if (ELAPSED(millis(), next_idle_ms)) {
       next_idle_ms = millis() + 200UL;
