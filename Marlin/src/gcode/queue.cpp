@@ -64,7 +64,7 @@ uint8_t commands_in_queue = 0, // Count of commands in the queue
 char command_queue[BUFSIZE][MAX_CMD_SIZE];
 
 #if defined(CNC_MODE)
-  char serial_previous;
+  char serial_previous = '\n';
 #endif
 
 /*

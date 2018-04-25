@@ -106,7 +106,11 @@ void GcodeSuite::get_destination_from_command() {
       const float v = parser.value_axis_units((AxisEnum)i);
       destination[i] = (axis_relative_modes[i] || relative_mode)
         ? current_position[i] + v
-        : (i == E_AXIS) ? v : LOGICAL_TO_NATIVE(v, i);
+        #if defined(CNC_MODE)
+        : LOGICAL_TO_NATIVE(v, i);
+        #else
+          : (i == E_AXIS) ? v : LOGICAL_TO_NATIVE(v, i);
+        #endif
     }
     else
       destination[i] = current_position[i];
@@ -685,19 +689,17 @@ void GcodeSuite::process_parsed_command(
     case 'T': T(parser.codenum); break;                           // Tn: Tool Change
 
     #if defined(CNC_MODE)
-      case 'X': case 'Y': case 'Z': case 'A': case 'F': {
-        G0_G1();
-      }
-      break;
+      // TODO: Needs fixing
+      // case 'X': case 'Y': case 'Z': case 'A': case 'F': case 'S': cncManager.jog(); break;
 
       case '$': switch (parser.command_letter_secondary) {        // grbl compatiblity
-        case '$': break;                                          // Prints settings in grbl format
+        //case '$': break;                                        // Prints settings in grbl format
         case 'H': G28(false); break;                              // Home all axes
         case 'G': cncManager.report_gcode_modes(); break;         // Prints gcode parser state
-        case 'C': break;                                          // Set check g-code mode [IDLE/CHECK]
+        //case 'C': break;                                        // Set check g-code mode [IDLE/CHECK]
         case 'X': M999(); break;                                  // Reset after being stopped
-        case '#': break;                                          // Print Grbl NGC parameters
-        case 'I': cncManager.report_build_info(); break;                                          // Print build info.
+        //case '#': break;                                        // Print Grbl NGC parameters
+        case 'I': cncManager.report_build_info(); break;          // Print build info.
         default: parser.unknown_command_error(); break;           // Unknown Command Error
         }
         break;

@@ -276,6 +276,7 @@ public:
   #if ENABLED(SPINDLE_LASER_PWM)
     static uint8_t spindle_mode,
                    spindle_laser_power;
+    static float   spindle_rpm;
   #endif
 
   #if defined(CNC_MODE)

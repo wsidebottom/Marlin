@@ -33,6 +33,7 @@
 
 uint8_t GcodeSuite::spindle_mode,
         GcodeSuite::spindle_laser_power;
+float   GcodeSuite::spindle_rpm;
 
 #if defined(CNC_MODE)
   // grbl compatibility
@@ -117,7 +118,10 @@ void GcodeSuite::M3_M4(bool is_M3) {
    * Then needed to AND the uint16_t result with 0x00FF to make sure we only wrote the byte of interest.
    */
   #if ENABLED(SPINDLE_LASER_PWM)
-    if (parser.seen('O')) ocr_val_mode();
+    if (parser.seen('O')) {
+      ocr_val_mode();
+      gcode.spindle_rpm = 0;
+    }
     else {
       const float spindle_laser_power = parser.floatval('S');
       if (spindle_laser_power == 0) {
@@ -129,12 +133,21 @@ void GcodeSuite::M3_M4(bool is_M3) {
         #endif
       }
       else {
+        #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
+          print_job_timer.start();
+        #endif
         int16_t ocr_val = (spindle_laser_power - (SPEED_POWER_INTERCEPT)) * (1.0 / (SPEED_POWER_SLOPE));  // convert RPM to PWM duty cycle
         NOMORE(ocr_val, 255);                                                                             // limit to max the Atmel PWM will support
-        if (spindle_laser_power <= SPEED_POWER_MIN)
+        if (spindle_laser_power <= SPEED_POWER_MIN) {
           ocr_val = (SPEED_POWER_MIN - (SPEED_POWER_INTERCEPT)) * (1.0 / (SPEED_POWER_SLOPE));            // minimum setting
-        if (spindle_laser_power >= SPEED_POWER_MAX)
+          gcode.spindle_rpm = SPEED_POWER_MIN;
+        }
+        else gcode.spindle_rpm = spindle_laser_power;
+
+        if (spindle_laser_power >= SPEED_POWER_MAX) {
           ocr_val = (SPEED_POWER_MAX - (SPEED_POWER_INTERCEPT)) * (1.0 / (SPEED_POWER_SLOPE));            // limit to max RPM
+          gcode.spindle_rpm = SPEED_POWER_MAX;
+        }
         if (SPINDLE_LASER_PWM_INVERT) ocr_val = 255 - ocr_val;
         #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
           print_job_timer.start();
@@ -157,6 +170,7 @@ void GcodeSuite::M3_M4(bool is_M3) {
  * M5 turn off spindle
  */
 void GcodeSuite::M5() {
+  gcode.spindle_rpm=0;
   spindle_mode=0;
   stepper.synchronize();
   WRITE(SPINDLE_LASER_ENABLE_PIN, !SPINDLE_LASER_ENABLE_INVERT);
