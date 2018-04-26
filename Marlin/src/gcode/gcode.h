@@ -274,15 +274,13 @@ public:
   #endif
 
   #if ENABLED(SPINDLE_LASER_PWM)
-    static uint8_t spindle_mode,
-                   spindle_laser_power;
+    static uint8_t spindle_mode;
     static float   spindle_rpm;
   #endif
 
   #if defined(CNC_MODE)
     // grbl compatibility
     static float st_get_realtime_rate;
-    //sys.spindle_speed = spindle_laser_power with max rpm
 
     // Coolant
     static uint8_t coolant_mode;
@@ -352,6 +350,11 @@ public:
   #endif
 
   static void dwell(millis_t time);
+
+  #if ENABLED(SPINDLE_LASER_ENABLE)
+    static void M3_M4(bool is_M3, bool use_delay, bool speed_only);
+    static void M5(bool use_delay);
+  #endif
 
 private:
 
@@ -442,11 +445,6 @@ private:
 
   #if HAS_RESUME_CONTINUE
     static void M0_M1();
-  #endif
-
-  #if ENABLED(SPINDLE_LASER_ENABLE)
-    static void M3_M4(bool is_M3);
-    static void M5();
   #endif
 
   static void M17();

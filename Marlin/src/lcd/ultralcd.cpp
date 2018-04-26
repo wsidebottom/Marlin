@@ -189,6 +189,8 @@ uint16_t max_display_update_time = 0;
   void lcd_control_menu();
   #if !defined(CNC_MODE)
     void lcd_control_temperature_menu();
+  #else
+    void lcd_control_spindle_coolant_menu();
   #endif
   void lcd_control_motion_menu();
 
@@ -3484,29 +3486,62 @@ void kill_screen(const char* lcd_msg) {
   }
 
   #else
-    /**
+  
+  void lcd_speed_spindle() {
+    if (use_click()) { return lcd_goto_previous_menu_no_defer(); }
+    ENCODER_DIRECTION_NORMAL();
+    if (encoderPosition) {
+      // Get the new position
+      const float diff = float((int32_t)encoderPosition) * move_menu_scale;
+        gcode.spindle_rpm += diff;
+        if ((int32_t)encoderPosition < 0)
+          NOLESS(gcode.spindle_rpm, SPEED_POWER_MIN);
+        else
+          NOMORE(gcode.spindle_rpm, SPEED_POWER_MAX);
+
+      gcode.M3_M4(false, false, true);
+      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+    }
+    encoderPosition = 0;
+    if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_SPINDLE_SPEED), ftostr5rj(gcode.spindle_rpm));
+  }
+
+  screenFunc_t _change_speed_func_ptr;
+
+  void _goto_manual_speed(const float scale) {
+    defer_return_to_status = true;
+    move_menu_scale = scale;
+    lcd_goto_screen(_change_speed_func_ptr);
+  }
+
+  void lcd_spindle_speed_menu_100rpm()  { _goto_manual_speed(100.0); }
+  void lcd_spindle_speed_menu_1000rpm() { _goto_manual_speed(1000.0); }
+
+  void _lcd_speed_menu(const screenFunc_t func) {
+    _manual_move_func_ptr = func;
+    START_MENU();
+    STATIC_ITEM(MSG_SPINDLE_SPEED, true, true); break;
+    MENU_BACK(MSG_SPINDLE_COOLANT);
+    MENU_ITEM(submenu, MSG_ADJUST_100RPM, lcd_spindle_speed_menu_100rpm);
+    MENU_ITEM(submenu, MSG_ADJUST_1000RPM, lcd_spindle_speed_menu_1000rpm);
+    END_MENU();
+  }
+
+  void lcd_speed_get_spindle_amount()   { _lcd_speed_menu(lcd_speed_spindle); }
+
+  /**
    *
    * "Control" > "Spindle & Coolant" submenu
    *
    */
   void lcd_control_spindle_coolant_menu() {
     START_MENU();
-
-    //
-    // ^ Control
-    //
     MENU_BACK(MSG_CONTROL);
-
-    //
-    // Spindle:
-    //
-    MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_SPINDLE_SPEED, &fanSpeeds[0], 0, 255);
-x
-    //
-    // Coolant:
-    //
-    MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLANT, &new_fanSpeeds[0], 3, 255);
- 
+    // Spindle On/off
+    // Spindle fwd/rev
+    MENU_ITEM(submenu, MSG_SPINDLE_SPEED, lcd_speed_get_spindle_amount);
+    // coolant
+    //MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLANT, &new_fanSpeeds[0], 3, 255);
     END_MENU();
   }
   #endif

@@ -449,7 +449,7 @@
   #endif
 #endif
 #ifndef MSG_MOVE_001MM
-  #define MSG_MOVE_001MM                       _UxGT("Move 0.01mm")
+  #define MSG_MOVE_001MM                      _UxGT("Move 0.01mm")
 #endif
 #ifndef MSG_MOVE_01MM
   #define MSG_MOVE_01MM                       _UxGT("Move 0.1mm")
@@ -463,8 +463,28 @@
 #ifndef MSG_MOVE_50MM
   #define MSG_MOVE_50MM                       _UxGT("Move 50mm")
 #endif
-#ifndef MSG_SPEED
-  #define MSG_SPEED                           _UxGT("Speed")
+#if ENABLED(SPINDLE_LASER_ENABLE)
+  #ifndef MSG_ADJUST_100RPM
+    #define MSG_ADJUST_100RPM                 _UxGT("Adjust 100 RPM")
+  #endif
+  #ifndef MSG_ADJUST_1000RPM
+    #define MSG_ADJUST_1000RPM                _UxGT("Adjust 1000 RPM")
+  #endif
+  #ifndef MSG_SPEED
+    #define MSG_SPEED                         _UxGT("Speed")
+  #endif
+  #ifndef MSG_SPINDLE_SPEED
+    #define MSG_SPINDLE_SPEED                 _UxGT("Spindle speed")
+  #endif
+  #ifndef MSG_SPINDLE
+    #define MSG_SPINDLE                       _UxGT("Spindle")
+  #endif
+  #ifndef MSG_COOLANT
+    #define MSG_COOLANT                       _UxGT("Coolant")
+  #endif
+  #ifndef MSG_SPINDLE_COOLANT
+    #define MSG_SPINDLE_COOLANT               _UxGT("Spindle & Coolant")
+  #endif
 #endif
 #ifndef MSG_BED_Z
   #define MSG_BED_Z                           _UxGT("Bed Z")
@@ -474,12 +494,6 @@
 #endif
 #ifndef MSG_BED
   #define MSG_BED                             _UxGT("Bed")
-#endif
-#ifndef MSG_SPINDLE_SPEED
-  #define MSG_SPINDLE_SPEED                   _UxGT("Spindle speed")
-#endif
-#ifndef MSG_COOLANT
-  #define MSG_COOLANT                         _UxGT("Coolant")
 #endif
 #ifndef MSG_FAN_SPEED
   #define MSG_FAN_SPEED                       _UxGT("Fan speed")
@@ -628,9 +642,6 @@
 #endif
 #ifndef MSG_TEMPERATURE
   #define MSG_TEMPERATURE                     _UxGT("Temperature")
-#endif
-#ifndef MSG_SPINDLE_COOLANT
-  #define MSG_SPINDLE_COOLANT                 _UxGT("Spindle & Coolant")
 #endif
 #ifndef MSG_MOTION
   #define MSG_MOTION                          _UxGT("Motion")

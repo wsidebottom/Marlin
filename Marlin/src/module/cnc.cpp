@@ -342,8 +342,6 @@ void cnc::printFloat(
  */
 void cnc::jog() {
   float v = parser.codenum;
-  float slp = parser.floatval('S');
-  gcode.spindle_rpm=slp;
 
   switch(parser.command_letter) {
     case 'X':
@@ -366,8 +364,8 @@ void cnc::jog() {
       feedrate_mm_s = MMM_TO_MMS(v);
     break;
     case 'S':
-        slp=v;
-        gcode.spindle_rpm=slp;
+      gcode.spindle_rpm=parser.floatval('S');
+      gcode.M3_M4(false, true, true);
     break;
   }
 
@@ -383,50 +381,6 @@ void cnc::jog() {
 
   if (parser.linearval('F') > 0.0)
     feedrate_mm_s = MMM_TO_MMS(parser.value_feedrate());
-
-  if (slp > 0.0) {
-    if (parser.seen('O')) {
-      gcode.spindle_laser_power = parser.value_byte();
-      WRITE(SPINDLE_LASER_ENABLE_PIN, SPINDLE_LASER_ENABLE_INVERT); // turn spindle on (active low)
-      if (SPINDLE_LASER_PWM_INVERT) gcode.spindle_laser_power = 255 - gcode.spindle_laser_power;
-      analogWrite(SPINDLE_LASER_PWM_PIN, gcode.spindle_laser_power);
-      gcode.spindle_rpm = 0;
-    }
-    else {
-      if (slp == 0) {
-        WRITE(SPINDLE_LASER_ENABLE_PIN, !SPINDLE_LASER_ENABLE_INVERT);                                    // turn spindle off (active low)
-        analogWrite(SPINDLE_LASER_PWM_PIN, SPINDLE_LASER_PWM_INVERT ? 255 : 0);                           // only write low byte
-        gcode.dwell(SPINDLE_LASER_POWERDOWN_DELAY);
-        #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
-          print_job_timer.stop();
-        #endif
-      }
-      else {
-        #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
-          print_job_timer.start();
-        #endif
-        int16_t ocr_val = (slp - (SPEED_POWER_INTERCEPT)) * (1.0 / (SPEED_POWER_SLOPE));  // convert RPM to PWM duty cycle
-        NOMORE(ocr_val, 255);                                                                             // limit to max the Atmel PWM will support
-        if (slp <= SPEED_POWER_MIN) {
-          ocr_val = (SPEED_POWER_MIN - (SPEED_POWER_INTERCEPT)) * (1.0 / (SPEED_POWER_SLOPE));            // minimum setting
-          gcode.spindle_rpm = SPEED_POWER_MIN;
-        }
-        else gcode.spindle_rpm = slp;
-
-        if (slp >= SPEED_POWER_MAX) {
-          ocr_val = (SPEED_POWER_MAX - (SPEED_POWER_INTERCEPT)) * (1.0 / (SPEED_POWER_SLOPE));            // limit to max RPM
-          gcode.spindle_rpm = SPEED_POWER_MAX;
-        }
-        if (SPINDLE_LASER_PWM_INVERT) ocr_val = 255 - ocr_val;
-        #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
-          print_job_timer.start();
-        #endif
-        WRITE(SPINDLE_LASER_ENABLE_PIN, SPINDLE_LASER_ENABLE_INVERT);                                     // turn spindle on (active low)
-        analogWrite(SPINDLE_LASER_PWM_PIN, ocr_val & 0xFF);                                               // only write low byte
-        gcode.dwell(SPINDLE_LASER_POWERUP_DELAY);
-      }
-    }
-  }
 
     prepare_move_to_destination();
   }
