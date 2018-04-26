@@ -170,8 +170,8 @@
 //
 #if DISABLED(REPRAPWORLD_KEYPAD)        // try to use the keypad connector first
   #define SPINDLE_LASER_PWM_PIN    44   // MUST BE HARDWARE PWM
-  #define SPINDLE_LASER_ENABLE_PIN 43   // Pin should have a pullup!
-  #define SPINDLE_DIR_PIN          42
+  #define SPINDLE_FWD_PIN 43   // Pin should have a pullup!
+  #define SPINDLE_REV_PIN          42
 #elif EXTRUDERS <= 2
   // Hijack the last extruder so that we can get the PWM signal off the Y breakout
   // Move Y to the E2 plug. This makes dual Y steppers harder
@@ -185,6 +185,6 @@
   #define Y_STEP_PIN               22
   #define Y_DIR_PIN                60
   #define SPINDLE_LASER_PWM_PIN     4   // MUST BE HARDWARE PWM
-  #define SPINDLE_LASER_ENABLE_PIN 17   // Pin should have a pullup!
-  #define SPINDLE_DIR_PIN           5
+  #define SPINDLE_FWD_PIN 17   // Pin should have a pullup!
+  #define SPINDLE_REV_PIN           5
 #endif

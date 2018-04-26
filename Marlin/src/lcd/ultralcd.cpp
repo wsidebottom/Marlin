@@ -3502,7 +3502,7 @@ void kill_screen(const char* lcd_msg) {
         else
           NOMORE(gcode.spindle_rpm, SPEED_POWER_MAX);
 
-      gcode.M3_M4(false, false, true);
+      gcode.Spindle_Speed_Adjust(false, false);
       lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
     }
     encoderPosition = 0;
@@ -3540,9 +3540,13 @@ void kill_screen(const char* lcd_msg) {
   void lcd_control_spindle_coolant_menu() {
     START_MENU();
     MENU_BACK(MSG_CONTROL);
-    MENU_ITEM_EDIT(bool, MSG_SPINDLE, &soft_endstops_enabled);
     // Spindle On/off
-    // Spindle fwd/rev
+    MENU_ITEM_EDIT_CALLBACK(bool, MSG_SPINDLE, &gcode.spindle_on_off, gcode.Spindle_On_Off);
+    #if SPINDLE_DIR_CHANGE
+      // Spindle fwd/rev
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_SPINDLE_REV, &gcode.spindle_rev, gcode.Spindle_Fwd_Rev);
+    #endif
+    // Spindle Speed
     MENU_ITEM(submenu, MSG_SPINDLE_SPEED, lcd_speed_get_spindle_amount);
     // coolant
     //MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLANT, &new_fanSpeeds[0], 3, 255);

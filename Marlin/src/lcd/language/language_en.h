@@ -479,6 +479,9 @@
   #ifndef MSG_SPINDLE
     #define MSG_SPINDLE                       _UxGT("Spindle")
   #endif
+  #ifndef MSG_SPINDLE_REV
+    #define MSG_SPINDLE_REV                   _UxGT("Spindle CCW")
+  #endif
   #ifndef MSG_COOLANT
     #define MSG_COOLANT                       _UxGT("Coolant")
   #endif

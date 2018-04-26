@@ -126,21 +126,22 @@
  *
  *      stepper signal           socket name       socket name
  *                                          -------
- *       SPINDLE_LASER_ENABLE_PIN /ENABLE  O|     |O  VMOT
+ *       SPINDLE_FWD_PIN /ENABLE  O|     |O  VMOT
  *                                    MS1  O|     |O  GND
  *                                    MS2  O|     |O  2B
  *                                    MS3  O|     |O  2A
  *                                 /RESET  O|     |O  1A
  *                                 /SLEEP  O|     |O  1B
  *          SPINDLE_LASER_PWM_PIN    STEP  O|     |O  VDD
- *                SPINDLE_DIR_PIN     DIR  O|     |O  GND
+ *                SPINDLE_REV_PIN     DIR  O|     |O  GND
  *                                          -------
  *
  *  Note: Socket names vary from vendor to vendor
  */
 #undef SPINDLE_LASER_PWM_PIN    // Definitions in pins_RAMPS.h are not good with 3DRAG
-#undef SPINDLE_LASER_ENABLE_PIN
-#undef SPINDLE_DIR_PIN
+#undef SPINDLE_FWD_PIN
+#undef SPINDLE_REV_PIN
+#undef SPINDLE_REV_PIN
 
 #if ENABLED(SPINDLE_LASER_ENABLE)
   #if !EXTRUDERS
@@ -154,10 +155,10 @@
     #define Z_ENABLE_PIN             24
     #define Z_STEP_PIN               26
     #define SPINDLE_LASER_PWM_PIN    46   // MUST BE HARDWARE PWM
-    #define SPINDLE_LASER_ENABLE_PIN 62   // Pin should have a pullup!
-    #define SPINDLE_DIR_PIN          48
+    #define SPINDLE_FWD_PIN 62   // Pin should have a pullup!
+    #define SPINDLE_REV_PIN          48
   #elif !(ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)) // use expansion header if no LCD in use
-    #define SPINDLE_LASER_ENABLE_PIN 16   // Pin should have a pullup/pulldown!
-    #define SPINDLE_DIR_PIN          17
+    #define SPINDLE_FWD_PIN 16   // Pin should have a pullup/pulldown!
+    #define SPINDLE_REV_PIN          17
   #endif
 #endif

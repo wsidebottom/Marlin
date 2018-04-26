@@ -140,11 +140,11 @@
 //
 #if ENABLED(SPINDLE_LASER_ENABLE)
   #undef HEATER_0_PIN
-  #define SPINDLE_LASER_ENABLE_PIN  P2_07   // FET 1
+  #define SPINDLE_FWD_PIN  P2_07   // FET 1
   #undef HEATER_BED_PIN
   #define SPINDLE_LASER_PWM_PIN     P2_05   // Bed FET
   #undef FAN_PIN
-  #define SPINDLE_DIR_PIN           P2_06   // ReMix FET 4, Mini FET 3
+  #define SPINDLE_REV_PIN           P2_06   // ReMix FET 4, Mini FET 3
 #endif
 
 //

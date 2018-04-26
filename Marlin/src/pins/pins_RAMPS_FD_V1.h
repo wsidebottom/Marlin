@@ -188,8 +188,8 @@
 //
 #if ENABLED(SPINDLE_LASER_ENABLE) && !PIN_EXISTS(SPINDLE_LASER_ENABLE)
   #if HOTENDS < 3
-    #define SPINDLE_LASER_ENABLE_PIN  45   // Use E2 ENA
+    #define SPINDLE_FWD_PIN  45   // Use E2 ENA
     #define SPINDLE_LASER_PWM_PIN     12   // MUST BE HARDWARE PWM
-    #define SPINDLE_DIR_PIN           47   // Use E2 DIR
+    #define SPINDLE_REV_PIN           47   // Use E2 DIR
   #endif
 #endif

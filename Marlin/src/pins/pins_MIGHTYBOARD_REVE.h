@@ -267,9 +267,9 @@
 //
 // M3/M4/M5 - Spindle/Laser Control
 //
-#define SPINDLE_LASER_ENABLE_PIN 66   // K4   Pin should have a pullup!
+#define SPINDLE_FWD_PIN 66   // K4   Pin should have a pullup!
 #define SPINDLE_LASER_PWM_PIN     8   // H5   MUST BE HARDWARE PWM
-#define SPINDLE_DIR_PIN          67   // K5
+#define SPINDLE_REV_PIN          67   // K5
 
 
 // Check if all pins are defined in mega/pins_arduino.h

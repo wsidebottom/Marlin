@@ -166,11 +166,10 @@ void cnc::report_gcode_modes(
   else SERIAL_ECHO_P(port, " G90");
   // G94 is not supported by marlin
 
-  switch (gcode.spindle_mode) {
-    case 0 : SERIAL_ECHOPGM_P(port, " M5"); break;
-    case 1 : SERIAL_ECHOPGM_P(port, " M3"); break;
-    case 2 : SERIAL_ECHOPGM_P(port, " M4"); break;
-  }
+  if(gcode.spindle_on_off)
+    if(gcode.spindle_rev) SERIAL_ECHOPGM_P(port, " M4");
+    else SERIAL_ECHOPGM_P(port, " M3");
+  else SERIAL_ECHOPGM_P(port, " M5");
 
   switch (gcode.coolant_mode) {
     case 0 : SERIAL_ECHOPGM_P(port, " M9"); break;
@@ -365,7 +364,7 @@ void cnc::jog() {
     break;
     case 'S':
       gcode.spindle_rpm=parser.floatval('S');
-      gcode.M3_M4(false, true, true);
+      gcode.Spindle_Speed_Adjust(true, false);
     break;
   }
 

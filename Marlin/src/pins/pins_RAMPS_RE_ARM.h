@@ -205,7 +205,7 @@
 
 #define PS_ON_PIN         P2_12   // (12)
 
-#if ENABLED(CASE_LIGHT_ENABLE) && !PIN_EXISTS(CASE_LIGHT) && !defined(SPINDLE_LASER_ENABLE_PIN)
+#if ENABLED(CASE_LIGHT_ENABLE) && !PIN_EXISTS(CASE_LIGHT) && !defined(SPINDLE_FWD_PIN)
   #if !defined(NUM_SERVOS) || NUM_SERVOS < 4   // try to use servo connector
     #define CASE_LIGHT_PIN    P1_18   // (4) MUST BE HARDWARE PWM
   #endif
@@ -219,9 +219,9 @@
     #undef  SERVO1
     #undef  SERVO2
     #undef  SERVO3
-    #define SPINDLE_LASER_ENABLE_PIN  P1_21   // (6) Pin should have a pullup/pulldown!
+    #define SPINDLE_FWD_PIN  P1_21   // (6) Pin should have a pullup/pulldown!
     #define SPINDLE_LASER_PWM_PIN     P1_18   // (4) MUST BE HARDWARE PWM
-    #define SPINDLE_DIR_PIN           P1_19   // (5)
+    #define SPINDLE_REV_PIN           P1_19   // (5)
   #endif
 #endif
 

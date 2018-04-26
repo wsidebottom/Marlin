@@ -218,15 +218,15 @@
     #define Y_STOP_PIN         12   // SW2
     #define Z_STOP_PIN         11   // SW3
 
-    #define SPINDLE_DIR_PIN          10   // SW4
+    #define SPINDLE_REV_PIN          10   // SW4
     #define SPINDLE_LASER_PWM_PIN     9   // SW5  MUST BE HARDWARE PWM
-    #define SPINDLE_LASER_ENABLE_PIN  8   // SW6  Pin should have a pullup!
+    #define SPINDLE_FWD_PIN  8   // SW6  Pin should have a pullup!
 
   #elif ENABLED(board_rev_1_5)      // use the same pins - but now they are on a different connector
 
-    #define SPINDLE_DIR_PIN          10   // EXP3-6 (silkscreen says 10)
+    #define SPINDLE_REV_PIN          10   // EXP3-6 (silkscreen says 10)
     #define SPINDLE_LASER_PWM_PIN     9   // EXP3-7 (silkscreen says 9) MUST BE HARDWARE PWM
-    #define SPINDLE_LASER_ENABLE_PIN  8   // EXP3-8 (silkscreen says 8) Pin should have a pullup!
+    #define SPINDLE_FWD_PIN  8   // EXP3-8 (silkscreen says 8) Pin should have a pullup!
 
   #elif ENABLED(board_rev_1_1_TO_1_3)
 
@@ -248,14 +248,14 @@
       #define E0_STEP_PIN              49
       #define E0_DIR_PIN               47
       #define E0_ENABLE_PIN            48
-      #define SPINDLE_DIR_PIN          43
+      #define SPINDLE_REV_PIN          43
       #define SPINDLE_LASER_PWM_PIN    45   // MUST BE HARDWARE PWM
-      #define SPINDLE_LASER_ENABLE_PIN 41   // Pin should have a pullup!
+      #define SPINDLE_FWD_PIN 41   // Pin should have a pullup!
     #elif TEMP_SENSOR_BED == 0  // Can't use E0 so see if HEATER_BED_PIN is available
       #undef HEATER_BED_PIN
-      #define SPINDLE_DIR_PIN          38   // Probably pin 4 on 10 pin connector closest to the E0 socket
+      #define SPINDLE_REV_PIN          38   // Probably pin 4 on 10 pin connector closest to the E0 socket
       #define SPINDLE_LASER_PWM_PIN     4   // MUST BE HARDWARE PWM - Special precautions usually needed.
-      #define SPINDLE_LASER_ENABLE_PIN 40   // Pin should have a pullup! (Probably pin 6 on the 10-pin
+      #define SPINDLE_FWD_PIN 40   // Pin should have a pullup! (Probably pin 6 on the 10-pin
                                             // connector closest to the E0 socket)
     #endif
   #endif
@@ -266,13 +266,13 @@
  *
  *         spindle signal     socket name       socket name
  *                                       -------
- * SPINDLE_LASER_ENABLE_PIN    /ENABLE  *|     |O  VMOT
+ * SPINDLE_FWD_PIN    /ENABLE  *|     |O  VMOT
  *                                 MS1  O|     |O  GND
  *                                 MS2  O|     |O  2B
  *                                 MS3  O|     |O  2A
  *                              /RESET  O|     |O  1A
  *                              /SLEEP  O|     |O  1B
- *          SPINDLE_DIR_PIN       STEP  O|     |O  VDD
+ *          SPINDLE_REV_PIN       STEP  O|     |O  VDD
  *    SPINDLE_LASER_PWM_PIN        DIR  O|     |O  GND
  *                                       -------
  *  * - pin closest to MS1, MS2 & MS3 jumpers on the board

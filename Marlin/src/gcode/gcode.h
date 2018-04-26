@@ -274,8 +274,9 @@ public:
   #endif
 
   #if ENABLED(SPINDLE_LASER_PWM)
-    static uint8_t spindle_mode;
-    static float   spindle_rpm;
+    static bool     spindle_on_off,
+                    spindle_rev;
+    static float    spindle_rpm;
   #endif
 
   #if defined(CNC_MODE)
@@ -352,8 +353,14 @@ public:
   static void dwell(millis_t time);
 
   #if ENABLED(SPINDLE_LASER_ENABLE)
-    static void M3_M4(bool is_M3, bool use_delay, bool speed_only);
-    static void M5(bool use_delay);
+    static void M3(bool use_delay);                                         // Spindle Forward
+    static void M4(bool use_delay);                                         // Spindle Reverse
+    static void M5(bool use_delay);                                         // Spindle Off
+    static void Spindle_On_Off(bool use_delay = false);                     // Spindle On/Off
+    #if ENABLED(SPINDLE_LASER_PWM)
+      static void Spindle_Speed_Adjust(bool use_delay, bool speed_only);    // Spindle Speed
+      static void Spindle_Fwd_Rev(bool use_delay = false);
+    #endif
   #endif
 
 private:

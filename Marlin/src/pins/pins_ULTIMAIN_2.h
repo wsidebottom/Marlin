@@ -126,8 +126,8 @@
 //
 #if ENABLED(SPINDLE_LASER_ENABLE)   // use the LED_PIN for spindle speed control or case light
   #undef LED_PIN
-  #define SPINDLE_DIR_PIN          16
-  #define SPINDLE_LASER_ENABLE_PIN 17   // Pin should have a pullup!
+  #define SPINDLE_REV_PIN          16
+  #define SPINDLE_FWD_PIN 17   // Pin should have a pullup!
   #define SPINDLE_LASER_PWM_PIN     8   // MUST BE HARDWARE PWM
 #else
   #undef LED_PIN

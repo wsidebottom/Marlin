@@ -299,9 +299,9 @@ void GcodeSuite::process_parsed_command(
       #endif
 
       #if ENABLED(SPINDLE_LASER_ENABLE)
-        case 3: M3_M4(true, true, false); break;                  // M3: turn spindle/laser on, set laser/spindle power/speed, set rotation direction CW
-        case 4: M3_M4(false, true, false); break;                 // M4: turn spindle/laser on, set laser/spindle power/speed, set rotation direction CCW
-        case 5: M5(true); break;                                  // M5 - turn spindle/laser off
+        case 3: M3(true); break;                                  // M3: turn spindle/laser on, set laser/spindle power/speed, set rotation direction CW
+        case 4: M4(true); break;                                  // M4: turn spindle/laser on, set laser/spindle power/speed, set rotation direction CCW
+        case 5: M5(true); break;                                  // M5: turn spindle/laser off
       #endif
 
       case 17: M17(); break;                                      // M17: Enable all stepper motors

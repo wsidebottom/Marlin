@@ -158,5 +158,5 @@
 // M3/M4/M5 - Spindle/Laser Control
 //
 #define SPINDLE_LASER_PWM_PIN     9   // MUST BE HARDWARE PWM
-#define SPINDLE_LASER_ENABLE_PIN 10   // Pin should have a pullup!
-#define SPINDLE_DIR_PIN          11   // use the EXP3 PWM header
+#define SPINDLE_FWD_PIN          10   // use the EXP3 PWM header
+#define SPINDLE_REV_PIN          11   // use the EXP3 PWM header

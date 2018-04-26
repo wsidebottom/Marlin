@@ -140,8 +140,8 @@
 //
 // M3/M4/M5 - Spindle/Laser Control
 //
-#define SPINDLE_LASER_ENABLE_PIN 10   // Pin should have a pullup/pulldown!
-#define SPINDLE_DIR_PIN          11
+#define SPINDLE_FWD_PIN 10   // Pin should have a pullup/pulldown!
+#define SPINDLE_REV_PIN          11
 #if GEN7_VERSION < 13
   #define SPINDLE_LASER_PWM_PIN  16   // MUST BE HARDWARE PWM
 #else  // Gen7 v1.3 removed the I2C connector & signals so need to get PWM off the PC power supply header
