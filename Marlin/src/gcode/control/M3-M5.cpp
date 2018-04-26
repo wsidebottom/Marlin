@@ -83,6 +83,13 @@ inline void delay_for_power_down() { gcode.dwell(SPINDLE_LASER_POWERDOWN_DELAY);
 void GcodeSuite::M3(bool use_delay) {
   spindle_rev=false;
   stepper.synchronize();   // wait until previous movement commands (G0/G0/G2/G3) have completed before playing with the spindle
+  
+  float speed = parser.floatval('S');
+  if (speed > 0) {
+    gcode.spindle_rpm = speed;
+    Spindle_Speed_Adjust(false);
+  }
+  
   const bool rotation_dir = (spindle_rev == SPINDLE_INVERT_DIR);
   if (SPINDLE_STOP_ON_DIR_CHANGE) {
     spindle_on_off=false;
@@ -100,6 +107,13 @@ void GcodeSuite::M3(bool use_delay) {
 void GcodeSuite::M4(bool use_delay) {
   spindle_rev=true;
   stepper.synchronize();   // wait until previous movement commands (G0/G0/G2/G3) have completed before playing with the spindle
+
+  float speed = parser.floatval('S');
+  if (speed > 0) {
+    gcode.spindle_rpm = speed;
+    Spindle_Speed_Adjust(false);
+  }
+
   const bool rotation_dir = (spindle_rev == SPINDLE_INVERT_DIR);
   #if SPINDLE_DIR_CHANGE
     if (SPINDLE_STOP_ON_DIR_CHANGE) {
@@ -143,14 +157,12 @@ void GcodeSuite::Spindle_On_Off(bool use_delay) {
 }
 
 #if ENABLED(SPINDLE_LASER_PWM)
-  void GcodeSuite::Spindle_Speed_Adjust(bool use_delay, bool speed_only) {
+  void GcodeSuite::Spindle_Speed_Adjust(bool use_delay) {
     /**
      * Our final value for ocr_val is an unsigned 8 bit value between 0 and 255 which usually means uint8_t.
      * Went to uint16_t because some of the uint8_t calculations would sometimes give 1000 0000 rather than 1111 1111.
      * Then needed to AND the uint16_t result with 0x00FF to make sure we only wrote the byte of interest.
      */
-    if (!speed_only) gcode.spindle_rpm = parser.floatval('S');
-
     if (gcode.spindle_rpm == 0) {
       analogWrite(SPINDLE_LASER_PWM_PIN, SPINDLE_LASER_PWM_INVERT ? 255 : 0);                           // only write low byte
       if (use_delay) delay_for_power_down();

@@ -473,9 +473,6 @@
   #ifndef MSG_SPEED
     #define MSG_SPEED                         _UxGT("Speed")
   #endif
-  #ifndef MSG_SPINDLE_SPEED
-    #define MSG_SPINDLE_SPEED                 _UxGT("Spindle speed")
-  #endif
   #ifndef MSG_SPINDLE
     #define MSG_SPINDLE                       _UxGT("Spindle")
   #endif

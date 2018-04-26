@@ -106,9 +106,9 @@
 //
 #define SDSS               53
 #define LED_PIN            13
-#define PS_ON_PIN          12
+#define PS_ON_PIN          -1
 #define SUICIDE_PIN        54   // PIN that has to be turned on right after start, to keep power flowing.
-#define CASE_LIGHT_PIN      8
+#define CASE_LIGHT_PIN     -1
 
 //
 // LCD / Controller
@@ -157,6 +157,6 @@
 //
 // M3/M4/M5 - Spindle/Laser Control
 //
-#define SPINDLE_LASER_PWM_PIN     9   // MUST BE HARDWARE PWM
-#define SPINDLE_FWD_PIN          10   // use the EXP3 PWM header
-#define SPINDLE_REV_PIN          11   // use the EXP3 PWM header
+#define SPINDLE_LASER_PWM_PIN    10   // MUST BE HARDWARE PWM
+#define SPINDLE_FWD_PIN          11   // use the EXP3 PWM header
+#define SPINDLE_REV_PIN          12   // use the EXP3 PWM header

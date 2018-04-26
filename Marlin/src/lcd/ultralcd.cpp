@@ -191,7 +191,7 @@ uint16_t max_display_update_time = 0;
     void lcd_control_temperature_menu();
   #endif
   #if ENABLED(SPINDLE_LASER_ENABLE)
-    void lcd_control_spindle_coolant_menu();
+    void lcd_prepare_spindle_coolant_menu();
   #endif
   void lcd_control_motion_menu();
 
@@ -2570,6 +2570,13 @@ void kill_screen(const char* lcd_msg) {
     MENU_BACK(MSG_MAIN);
 
     //
+    // Spindle & Coolant
+    //
+    #if ENABLED(SPINDLE_LASER_ENABLE)
+      MENU_ITEM(submenu, MSG_SPINDLE_COOLANT, lcd_prepare_spindle_coolant_menu);
+    #endif
+
+    //
     // Move Axis
     //
     #if ENABLED(DELTA)
@@ -2708,6 +2715,10 @@ void kill_screen(const char* lcd_msg) {
   }
 
   float move_menu_scale;
+
+  #if ENABLED(SPINDLE_LASER_PWM)
+    float speed_menu_scale;
+  #endif
 
   #if (ENABLED(DELTA_CALIBRATION_MENU) || ENABLED(DELTA_AUTO_CALIBRATION))
 
@@ -2879,6 +2890,96 @@ void kill_screen(const char* lcd_msg) {
     manual_move_start_time = millis() + (move_menu_scale < 0.99 ? 0UL : 250UL); // delay for bigger moves
     manual_move_axis = (int8_t)axis;
   }
+
+  #if ENABLED(SPINDLE_LASER_ENABLE)
+
+    #if ENABLED(SPINDLE_LASER_PWM)
+
+    /**
+     *
+     * "Prepare" > "Spindle & Coolant" > "Spindle Speed" submenu
+     *
+     */
+
+      void lcd_spindle_speed() {
+        if (use_click()) { return lcd_goto_previous_menu_no_defer(); }
+        ENCODER_DIRECTION_NORMAL();
+        if (encoderPosition) {
+          // Get the new position
+          const float diff = float((int32_t)encoderPosition) * speed_menu_scale;
+            gcode.spindle_rpm += diff;
+            if ((int32_t)encoderPosition < SPEED_POWER_MIN) // 0
+              NOLESS(gcode.spindle_rpm, SPEED_POWER_MIN);
+            else
+              NOMORE(gcode.spindle_rpm, SPEED_POWER_MAX);
+
+          gcode.Spindle_Speed_Adjust(false);
+          lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
+        }
+        encoderPosition = 0;
+        if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_SPINDLE " " MSG_SPEED), ftostr5rj(gcode.spindle_rpm));
+      }
+
+      screenFunc_t _change_spindle_speed_func_ptr;
+
+      void _goto_manual_speed(const float scale) {
+        defer_return_to_status = true;
+        speed_menu_scale = scale;
+        lcd_goto_screen(_change_spindle_speed_func_ptr);
+      }
+
+      void lcd_spindle_speed_menu_100rpm()  { _goto_manual_speed(100.0); }
+      void lcd_spindle_speed_menu_1000rpm() { _goto_manual_speed(1000.0); }
+
+      void _lcd_spindle_speed_menu(const screenFunc_t func) {
+        _change_spindle_speed_func_ptr = func;
+        START_MENU();
+        STATIC_ITEM(MSG_SPINDLE " " MSG_SPEED, true, true);
+        MENU_BACK(MSG_SPINDLE_COOLANT);
+        MENU_ITEM(submenu, MSG_ADJUST_100RPM, lcd_spindle_speed_menu_100rpm);
+        MENU_ITEM(submenu, MSG_ADJUST_1000RPM, lcd_spindle_speed_menu_1000rpm);
+        END_MENU();
+      }
+
+      void lcd_spindle_speed_set()   { _lcd_spindle_speed_menu(lcd_spindle_speed); }
+
+    #endif  // SPINDLE_LASER_PWM
+
+    void lcd_spindle_on_off_toggle() {
+      gcode.Spindle_On_Off(false);
+    }
+
+    #if SPINDLE_DIR_CHANGE
+      void lcd_spindle_fwd_rev_toggle() {
+        gcode.Spindle_Fwd_Rev(false);
+      }
+    #endif  // SPINDLE_DIR_CHANGE
+
+    /**
+     *
+     * "Prepare" > "Spindle & Coolant" submenu
+     *
+     */
+    void lcd_prepare_spindle_coolant_menu() {
+      START_MENU();
+      MENU_BACK(MSG_CONTROL);
+      // Spindle On/off
+      MENU_ITEM_EDIT_CALLBACK(bool, MSG_SPINDLE, &gcode.spindle_on_off, lcd_spindle_on_off_toggle);
+      #if SPINDLE_DIR_CHANGE
+        // Spindle fwd/rev
+        MENU_ITEM_EDIT_CALLBACK(bool, MSG_SPINDLE_REV, &gcode.spindle_rev, lcd_spindle_fwd_rev_toggle);
+      #endif
+      #if ENABLED(SPINDLE_LASER_PWM)
+        // Spindle Speed
+        MENU_ITEM(submenu, MSG_SPINDLE " " MSG_SPEED, lcd_spindle_speed_set);
+      #endif
+      // coolant
+      //MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLANT, &new_fanSpeeds[0], 3, 255);
+      END_MENU();
+    }
+
+  #endif  // SPINDLE_LASER_ENABLE
+
 
   /**
    *
@@ -3224,9 +3325,6 @@ void kill_screen(const char* lcd_msg) {
     #if !defined(CNC_MODE)
       MENU_ITEM(submenu, MSG_TEMPERATURE, lcd_control_temperature_menu);
     #endif
-    #if ENABLED(SPINDLE_LASER_ENABLE)
-      MENU_ITEM(submenu, MSG_SPINDLE_COOLANT, lcd_control_spindle_coolant_menu);
-    #endif
     MENU_ITEM(submenu, MSG_MOTION, lcd_control_motion_menu);
 
     #if (DISABLED(NO_VOLUMETRICS) || ENABLED(ADVANCED_PAUSE_FEATURE))
@@ -3488,72 +3586,6 @@ void kill_screen(const char* lcd_msg) {
   }
   #endif
   
-  #if ENABLED(SPINDLE_LASER_ENABLE)
-
-  void lcd_speed_spindle() {
-    if (use_click()) { return lcd_goto_previous_menu_no_defer(); }
-    ENCODER_DIRECTION_NORMAL();
-    if (encoderPosition) {
-      // Get the new position
-      const float diff = float((int32_t)encoderPosition) * move_menu_scale;
-        gcode.spindle_rpm += diff;
-        if ((int32_t)encoderPosition < 0)
-          NOLESS(gcode.spindle_rpm, SPEED_POWER_MIN);
-        else
-          NOMORE(gcode.spindle_rpm, SPEED_POWER_MAX);
-
-      gcode.Spindle_Speed_Adjust(false, false);
-      lcdDrawUpdate = LCDVIEW_REDRAW_NOW;
-    }
-    encoderPosition = 0;
-    if (lcdDrawUpdate) lcd_implementation_drawedit(PSTR(MSG_SPINDLE_SPEED), ftostr5rj(gcode.spindle_rpm));
-  }
-
-  screenFunc_t _change_speed_func_ptr;
-
-  void _goto_manual_speed(const float scale) {
-    defer_return_to_status = true;
-    move_menu_scale = scale;
-    lcd_goto_screen(_change_speed_func_ptr);
-  }
-
-  void lcd_spindle_speed_menu_100rpm()  { _goto_manual_speed(100.0); }
-  void lcd_spindle_speed_menu_1000rpm() { _goto_manual_speed(1000.0); }
-
-  void _lcd_speed_menu(const screenFunc_t func) {
-    _manual_move_func_ptr = func;
-    START_MENU();
-    STATIC_ITEM(MSG_SPINDLE_SPEED, true, true); break;
-    MENU_BACK(MSG_SPINDLE_COOLANT);
-    MENU_ITEM(submenu, MSG_ADJUST_100RPM, lcd_spindle_speed_menu_100rpm);
-    MENU_ITEM(submenu, MSG_ADJUST_1000RPM, lcd_spindle_speed_menu_1000rpm);
-    END_MENU();
-  }
-
-  void lcd_speed_get_spindle_amount()   { _lcd_speed_menu(lcd_speed_spindle); }
-
-  /**
-   *
-   * "Control" > "Spindle & Coolant" submenu
-   *
-   */
-  void lcd_control_spindle_coolant_menu() {
-    START_MENU();
-    MENU_BACK(MSG_CONTROL);
-    // Spindle On/off
-    MENU_ITEM_EDIT_CALLBACK(bool, MSG_SPINDLE, &gcode.spindle_on_off, gcode.Spindle_On_Off);
-    #if SPINDLE_DIR_CHANGE
-      // Spindle fwd/rev
-      MENU_ITEM_EDIT_CALLBACK(bool, MSG_SPINDLE_REV, &gcode.spindle_rev, gcode.Spindle_Fwd_Rev);
-    #endif
-    // Spindle Speed
-    MENU_ITEM(submenu, MSG_SPINDLE_SPEED, lcd_speed_get_spindle_amount);
-    // coolant
-    //MENU_MULTIPLIER_ITEM_EDIT(int3, MSG_COOLANT, &new_fanSpeeds[0], 3, 255);
-    END_MENU();
-  }
-  #endif
-
   #if DISABLED(SLIM_LCD_MENUS)
 
   #if !defined(CNC_MODE)

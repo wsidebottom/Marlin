@@ -356,10 +356,10 @@ public:
     static void M3(bool use_delay);                                         // Spindle Forward
     static void M4(bool use_delay);                                         // Spindle Reverse
     static void M5(bool use_delay);                                         // Spindle Off
-    static void Spindle_On_Off(bool use_delay = false);                     // Spindle On/Off
+    static void Spindle_On_Off(bool use_delay);                             // Spindle On/Off
     #if ENABLED(SPINDLE_LASER_PWM)
-      static void Spindle_Speed_Adjust(bool use_delay, bool speed_only);    // Spindle Speed
-      static void Spindle_Fwd_Rev(bool use_delay = false);
+      static void Spindle_Speed_Adjust(bool use_delay);                     // Spindle Speed
+      static void Spindle_Fwd_Rev(bool use_delay);
     #endif
   #endif
 

@@ -364,7 +364,7 @@ void cnc::jog() {
     break;
     case 'S':
       gcode.spindle_rpm=parser.floatval('S');
-      gcode.Spindle_Speed_Adjust(true, false);
+      gcode.Spindle_Speed_Adjust(true);
     break;
   }
 
