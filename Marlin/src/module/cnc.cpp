@@ -126,9 +126,19 @@ void cnc::report_build_info(
   SERIAL_ECHOPGM_P(port, SHORT_BUILD_VERSION);
   SERIAL_ECHOLNPGM_P(port, "]");
   SERIAL_EOL_P(port);
-  SERIAL_ECHOPGM_P(port, "[OPT:VNMHT");
-  #ifndef HOMING_INIT_LOCK
-    SERIAL_CHAR_P(port, 'L');
+  SERIAL_ECHOPGM_P(port, "[OPT:");
+  #if ENABLED(SPINDLE_LASER_PWM)
+    SERIAL_CHAR_P(port, 'V');                     // Variable Speed Spindle
+  #endif
+  SERIAL_CHAR_P(port, 'N');                       // Line Numbers
+  //SERIAL_CHAR_P(port, 'M');                     // Coolant Mist Enabled
+  SERIAL_CHAR_P(port, 'H');                       // Homing Single Axis Support
+  #if ENABLED(COREXY)
+    SERIAL_CHAR_P(port, 'C');                     // CoreXY Enabled
+  #endif
+  SERIAL_CHAR_P(port, 'T');                       // 2 Limit Switches per Axis
+  #if ENABLED(NO_MOTION_BEFORE_HOMING)
+    SERIAL_CHAR_P(port, 'L');                     // Homing Lock if un homed on startup
   #endif
   SERIAL_ECHOPAIR_P(port, ",", BLOCK_BUFFER_SIZE-1);
   SERIAL_ECHOPAIR_P(port, ",", RX_BUFFER_SIZE);
@@ -245,8 +255,12 @@ void cnc::report_realtime_status(
   if (gcode_N > 0) SERIAL_ECHOPAIR_P(port, "|Ln:", gcode_N);
 
   // Report realtime feed speed
-  SERIAL_ECHOPAIR_P(port, "|FS:", MMS_TO_MMM(gcode.st_get_realtime_rate));
-  SERIAL_ECHOPAIR_P(port, ",", gcode.spindle_rpm);
+  #if ENABLED(SPINDLE_LASER_PWM)
+    SERIAL_ECHOPAIR_P(port, "|FS:", MMS_TO_MMM(gcode.st_get_realtime_rate));
+    SERIAL_ECHOPAIR_P(port, ",", gcode.spindle_rpm);
+  #else
+    SERIAL_ECHOPAIR_P(port, "|F:", MMS_TO_MMM(gcode.st_get_realtime_rate));
+  #endif
 
   // REPORT_FIELD_PIN_STATE
   SERIAL_ECHOPGM_P(port, "|Pn:");
@@ -284,6 +298,23 @@ void cnc::report_realtime_status(
   //if (ctrl_pin_state,CONTROL_PIN_INDEX_RESET) { SERIAL_CHAR_P(port, 'R'); }         // Reset Button
   //if (ctrl_pin_state,CONTROL_PIN_INDEX_FEED_HOLD) { SERIAL_CHAR_P(port, 'H'); }     // Hold Button
   //if (ctrl_pin_state,CONTROL_PIN_INDEX_CYCLE_START) { SERIAL_CHAR_P(port, 'S'); }   // Start Button
+
+  // |Ov:100,100,100 - override of feed, rapids, spindle in percent
+
+  // |A:SFM S/C - spindle direction CW/CCW
+  //        F - Flood coolant
+  //        M - Mist coolant
+  SERIAL_ECHO_P(port, "|A:");
+  #if ENABLED(SPINDLE_LASER_ENABLE)
+    if (gcode.spindle_on_off) {
+      #if ENABLED(SPINDLE_DIR_CHANGE)
+        if(gcode.spindle_rev) SERIAL_CHAR_P(port, 'C');
+        else SERIAL_CHAR_P(port, 'S');
+      #else
+        SERIAL_CHAR_P(port, 'S');
+      #endif
+    }
+  #endif
 
   SERIAL_ECHOLNPGM_P(port, ">");
 }

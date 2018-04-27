@@ -1726,7 +1726,7 @@ static_assert(COUNT(sanity_arr_3) <= XYZE_N, "DEFAULT_MAX_ACCELERATION has too m
    || ENABLED(PREVENT_LENGTHY_EXTRUDE) || ENABLED(THERMAL_PROTECTION_HOTENDS) || ENABLED(THERMAL_PROTECTION_BED)
     #error "ADVANCED_PAUSE_FEATURE, FWRETRACT, PREVENT_COLD_EXTRUSION, PREVENT_LENGTHY_EXTRUDE, THERMAL_PROTECTION_HOTENDS or THERMAL_PROTECTION_BED are not compatible with CNC Mode"
   #endif
-  #if defined(COREXY) || defined(COREXZ) || defined(COREYZ) || defined(COREYX) || defined(COREZX) \
+  #if defined(COREXZ) || defined(COREYZ) || defined(COREYX) || defined(COREZX) \
    || defined(COREZY) || defined(DELTA) || defined(MORGAN_SCARA) || defined(MAKERARM_SCARA)
     #error "CORExx, DELTA or SCARA variants are not compatible with CNC Mode."
   #endif
