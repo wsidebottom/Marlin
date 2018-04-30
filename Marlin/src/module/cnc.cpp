@@ -300,6 +300,10 @@ void cnc::report_realtime_status(
   //if (ctrl_pin_state,CONTROL_PIN_INDEX_CYCLE_START) { SERIAL_CHAR_P(port, 'S'); }   // Start Button
 
   // |Ov:100,100,100 - override of feed, rapids, spindle in percent
+  SERIAL_ECHOPAIR_P(port, "|Ov:", feedrate_percentage);
+  SERIAL_ECHOPAIR_P(port, ",", feedrate_percentage);
+  SERIAL_ECHOPAIR_P(port, ",", feedrate_percentage);
+  
 
   // |A:SFM S/C - spindle direction CW/CCW
   //        F - Flood coolant
