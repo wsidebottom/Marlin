@@ -108,6 +108,10 @@ extern USBSerial SerialUSB;
   #define NUM_SERIAL 1
 #endif
 
+// Use HAL_init() to set interrupt grouping.
+#define HAL_INIT
+void HAL_init();
+
 /**
  * TODO: review this to return 1 for pins that are not analog input
  */
@@ -115,8 +119,11 @@ extern USBSerial SerialUSB;
   #define analogInputToDigitalPin(p) (p)
 #endif
 
-#define CRITICAL_SECTION_START  noInterrupts();
-#define CRITICAL_SECTION_END    interrupts();
+#define CRITICAL_SECTION_START  uint32_t primask = __get_PRIMASK(); __disable_irq()
+#define CRITICAL_SECTION_END    if (!primask) __enable_irq()
+#define ISRS_ENABLED() (!__get_PRIMASK())
+#define ENABLE_ISRS()  __enable_irq()
+#define DISABLE_ISRS() __disable_irq()
 
 // On AVR this is in math.h?
 #define square(x) ((x)*(x))

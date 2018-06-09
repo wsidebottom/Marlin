@@ -107,97 +107,14 @@
   #define sw_barrier() asm volatile("": : :"memory");
 
   #if ENABLED(EMERGENCY_PARSER)
-
-    bool killed_by_M112; // = false
-
-    // Currently looking for: M108, M112, M410
-    // If you alter the parser please don't forget to update the capabilities in Conditionals_post.h
-
-    FORCE_INLINE void emergency_parser(const uint8_t c) {
-
-      static e_parser_state state = state_RESET;
-
-      switch (state) {
-        case state_RESET:
-          switch (c) {
-            case ' ': break;
-            case 'N': state = state_N;      break;
-            case 'M': state = state_M;      break;
-            default: state = state_IGNORE;
-          }
-          break;
-
-        case state_N:
-          switch (c) {
-            case '0': case '1': case '2':
-            case '3': case '4': case '5':
-            case '6': case '7': case '8':
-            case '9': case '-': case ' ':   break;
-            case 'M': state = state_M;      break;
-            default:  state = state_IGNORE;
-          }
-          break;
-
-        case state_M:
-          switch (c) {
-            case ' ': break;
-            case '1': state = state_M1;     break;
-            case '4': state = state_M4;     break;
-            default: state = state_IGNORE;
-          }
-          break;
-
-        case state_M1:
-          switch (c) {
-            case '0': state = state_M10;    break;
-            case '1': state = state_M11;    break;
-            default: state = state_IGNORE;
-          }
-          break;
-
-        case state_M10:
-          state = (c == '8') ? state_M108 : state_IGNORE;
-          break;
-
-        case state_M11:
-          state = (c == '2') ? state_M112 : state_IGNORE;
-          break;
-
-        case state_M4:
-          state = (c == '1') ? state_M41 : state_IGNORE;
-          break;
-
-        case state_M41:
-          state = (c == '0') ? state_M410 : state_IGNORE;
-          break;
-
-        case state_IGNORE:
-          if (c == '\n') state = state_RESET;
-          break;
-
-        default:
-          if (c == '\n') {
-            switch (state) {
-              case state_M108:
-                wait_for_user = wait_for_heatup = false;
-                break;
-              case state_M112:
-                killed_by_M112 = true;
-                break;
-              case state_M410:
-                quickstop_stepper();
-                break;
-              default:
-                break;
-            }
-            state = state_RESET;
-          }
-      }
-    }
-
-  #endif // EMERGENCY_PARSER
+    #include "../../feature/emergency_parser.h"
+  #endif
 
   FORCE_INLINE void store_rxd_char() {
+
+    #if ENABLED(EMERGENCY_PARSER)
+      static EmergencyParser::State emergency_state; // = EP_RESET
+    #endif
 
     const ring_buffer_pos_t h = rx_buffer.head,
                             i = (ring_buffer_pos_t)(h + 1) & (ring_buffer_pos_t)(RX_BUFFER_SIZE - 1);
@@ -237,12 +154,14 @@
         // let the host react and stop sending bytes. This translates to 13mS
         // propagation time.
         if (rx_count >= (RX_BUFFER_SIZE) / 8) {
+          
           // If TX interrupts are disabled and data register is empty,
           // just write the byte to the data register and be done. This
           // shortcut helps significantly improve the effective datarate
           // at high (>500kbit/s) bitrates, where interrupt overhead
           // becomes a slowdown.
           if (!(HWUART->UART_IMR & UART_IMR_TXRDY) && (HWUART->UART_SR & UART_SR_TXRDY)) {
+            
             // Send an XOFF character
             HWUART->UART_THR = XOFF_CHAR;
 
@@ -258,8 +177,9 @@
               xon_xoff_state = XOFF_CHAR;
             #else
               // We are not using TX interrupts, we will have to send this manually
-              while (!(HWUART->UART_SR & UART_SR_TXRDY)) { sw_barrier(); };
+              while (!(HWUART->UART_SR & UART_SR_TXRDY)) sw_barrier();
               HWUART->UART_THR = XOFF_CHAR;
+              
               // And remember we already sent it
               xon_xoff_state = XOFF_CHAR | XON_XOFF_CHAR_SENT;
             #endif
@@ -269,7 +189,7 @@
     #endif // SERIAL_XON_XOFF
 
     #if ENABLED(EMERGENCY_PARSER)
-      emergency_parser(c);
+      emergency_parser.update(emergency_state, c);
     #endif
   }
 
@@ -328,6 +248,11 @@
     // Disable UART interrupt in NVIC
     NVIC_DisableIRQ( HWUART_IRQ );
 
+    // We NEED memory barriers to ensure Interrupts are actually disabled!
+    // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
+    __DSB();
+    __ISB();
+
     // Disable clock
     pmc_disable_periph_clk( HWUART_IRQ_ID );
 
@@ -353,6 +278,11 @@
     // Install interrupt handler
     install_isr(HWUART_IRQ, UART_ISR);
 
+    // Configure priority. We need a very high priority to avoid losing characters
+    // and we need to be able to preempt the Stepper ISR and everything else!
+    // (this could probably be fixed by using DMA with the Serial port)
+    NVIC_SetPriority(HWUART_IRQ, 1);
+
     // Enable UART interrupt in NVIC
     NVIC_EnableIRQ(HWUART_IRQ);
 
@@ -368,119 +298,89 @@
     // Disable UART interrupt in NVIC
     NVIC_DisableIRQ( HWUART_IRQ );
 
+    // We NEED memory barriers to ensure Interrupts are actually disabled!
+    // ( https://dzone.com/articles/nvic-disabling-interrupts-on-arm-cortex-m-and-the )
+    __DSB();
+    __ISB();
+
     pmc_disable_periph_clk( HWUART_IRQ_ID );
   }
 
-  void MarlinSerial::checkRx(void) {
-    if (HWUART->UART_SR & UART_SR_RXRDY) {
-      CRITICAL_SECTION_START;
-      store_rxd_char();
-      CRITICAL_SECTION_END;
-    }
-  }
-
   int MarlinSerial::peek(void) {
-    CRITICAL_SECTION_START;
     const int v = rx_buffer.head == rx_buffer.tail ? -1 : rx_buffer.buffer[rx_buffer.tail];
-    CRITICAL_SECTION_END;
     return v;
   }
 
   int MarlinSerial::read(void) {
     int v;
-    CRITICAL_SECTION_START;
-    const ring_buffer_pos_t t = rx_buffer.tail;
-    if (rx_buffer.head == t)
+    
+    const ring_buffer_pos_t h = rx_buffer.head;
+    ring_buffer_pos_t t = rx_buffer.tail;
+    
+    if (h == t)
       v = -1;
     else {
       v = rx_buffer.buffer[t];
-      rx_buffer.tail = (ring_buffer_pos_t)(t + 1) & (RX_BUFFER_SIZE - 1);
+      t = (ring_buffer_pos_t)(t + 1) & (RX_BUFFER_SIZE - 1);
+      
+      // Advance tail
+      rx_buffer.tail = t;
 
       #if ENABLED(SERIAL_XON_XOFF)
         if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XOFF_CHAR) {
+          
           // Get count of bytes in the RX buffer
-          ring_buffer_pos_t rx_count = (ring_buffer_pos_t)(rx_buffer.head - rx_buffer.tail) & (ring_buffer_pos_t)(RX_BUFFER_SIZE - 1);
+          ring_buffer_pos_t rx_count = (ring_buffer_pos_t)(h - t) & (ring_buffer_pos_t)(RX_BUFFER_SIZE - 1);
+          
           // When below 10% of RX buffer capacity, send XON before
           // running out of RX buffer bytes
           if (rx_count < (RX_BUFFER_SIZE) / 10) {
             xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
-            CRITICAL_SECTION_END;       // End critical section before returning!
-            writeNoHandshake(XON_CHAR);
+            write(XON_CHAR);
             return v;
           }
         }
       #endif
     }
-    CRITICAL_SECTION_END;
     return v;
   }
 
   ring_buffer_pos_t MarlinSerial::available(void) {
-    CRITICAL_SECTION_START;
     const ring_buffer_pos_t h = rx_buffer.head, t = rx_buffer.tail;
-    CRITICAL_SECTION_END;
     return (ring_buffer_pos_t)(RX_BUFFER_SIZE + h - t) & (RX_BUFFER_SIZE - 1);
   }
 
   void MarlinSerial::flush(void) {
-    // Don't change this order of operations. If the RX interrupt occurs between
-    // reading rx_buffer_head and updating rx_buffer_tail, the previous rx_buffer_head
-    // may be written to rx_buffer_tail, making the buffer appear full rather than empty.
-    CRITICAL_SECTION_START;
-    rx_buffer.head = rx_buffer.tail;
-    CRITICAL_SECTION_END;
+    rx_buffer.tail = rx_buffer.head;
 
     #if ENABLED(SERIAL_XON_XOFF)
       if ((xon_xoff_state & XON_XOFF_CHAR_MASK) == XOFF_CHAR) {
         xon_xoff_state = XON_CHAR | XON_XOFF_CHAR_SENT;
-        writeNoHandshake(XON_CHAR);
+        write(XON_CHAR);
       }
     #endif
   }
 
   #if TX_BUFFER_SIZE > 0
-
-    uint8_t MarlinSerial::availableForWrite(void) {
-      CRITICAL_SECTION_START;
-      const uint8_t h = tx_buffer.head, t = tx_buffer.tail;
-      CRITICAL_SECTION_END;
-      return (uint8_t)(TX_BUFFER_SIZE + h - t) & (TX_BUFFER_SIZE - 1);
-    }
-
     void MarlinSerial::write(const uint8_t c) {
-      #if ENABLED(SERIAL_XON_XOFF)
-        const uint8_t state = xon_xoff_state;
-        if (!(state & XON_XOFF_CHAR_SENT)) {
-          // Send 2 chars: XON/XOFF, then a user-specified char
-          writeNoHandshake(state & XON_XOFF_CHAR_MASK);
-          xon_xoff_state = state | XON_XOFF_CHAR_SENT;
-        }
-      #endif
-      writeNoHandshake(c);
-    }
-
-    void MarlinSerial::writeNoHandshake(const uint8_t c) {
       _written = true;
-      CRITICAL_SECTION_START;
-      bool emty = (tx_buffer.head == tx_buffer.tail);
-      CRITICAL_SECTION_END;
-      // If the buffer and the data register is empty, just write the byte
-      // to the data register and be done. This shortcut helps
-      // significantly improve the effective datarate at high (>
-      // 500kbit/s) bitrates, where interrupt overhead becomes a slowdown.
-      if (emty && (HWUART->UART_SR & UART_SR_TXRDY)) {
-        CRITICAL_SECTION_START;
-          HWUART->UART_THR = c;
-          HWUART->UART_IER = UART_IER_TXRDY;
-        CRITICAL_SECTION_END;
+      
+      // If the TX interrupts are disabled and the data register 
+      // is empty, just write the byte to the data register and 
+      // be done. This shortcut helps significantly improve the 
+      // effective datarate at high (>500kbit/s) bitrates, where 
+      // interrupt overhead becomes a slowdown.
+      if (!(HWUART->UART_IMR & UART_IMR_TXRDY) && (HWUART->UART_SR & UART_SR_TXRDY)) {
+        HWUART->UART_THR = c;
         return;
       }
+      
       const uint8_t i = (tx_buffer.head + 1) & (TX_BUFFER_SIZE - 1);
 
       // If the output buffer is full, there's nothing for it other than to
       // wait for the interrupt handler to empty it a bit
       while (i == tx_buffer.tail) {
-        if (__get_PRIMASK()) {
+        if (!ISRS_ENABLED()) {
           // Interrupts are disabled, so we'll have to poll the data
           // register empty flag ourselves. If it is set, pretend an
           // interrupt has happened and call the handler to free up
@@ -488,31 +388,30 @@
           if (HWUART->UART_SR & UART_SR_TXRDY)
             _tx_thr_empty_irq();
         }
-        else {
-          // nop, the interrupt handler will free up space for us
-        }
+        // (else , the interrupt handler will free up space for us)
+        
+        // Make sure compiler rereads tx_buffer.tail
         sw_barrier();
       }
 
       tx_buffer.buffer[tx_buffer.head] = c;
-      { CRITICAL_SECTION_START;
-          tx_buffer.head = i;
-          HWUART->UART_IER = UART_IER_TXRDY;
-        CRITICAL_SECTION_END;
-      }
+      tx_buffer.head = i;
+      
+      // Enable TX isr
+      HWUART->UART_IER = UART_IER_TXRDY;
       return;
     }
 
     void MarlinSerial::flushTX(void) {
       // TX
       // If we have never written a byte, no need to flush.
-      if (!_written)
-        return;
+      if (!_written) return;
 
       while ((HWUART->UART_IMR & UART_IMR_TXRDY) || !(HWUART->UART_SR & UART_SR_TXEMPTY)) {
-        if (__get_PRIMASK())
-          if ((HWUART->UART_SR & UART_SR_TXRDY))
+        if (!ISRS_ENABLED()) {
+          if (HWUART->UART_SR & UART_SR_TXRDY)
             _tx_thr_empty_irq();
+        }
         sw_barrier();
       }
       // If we get here, nothing is queued anymore (TX interrupts are disabled) and
@@ -522,19 +421,7 @@
   #else // TX_BUFFER_SIZE == 0
 
     void MarlinSerial::write(const uint8_t c) {
-      #if ENABLED(SERIAL_XON_XOFF)
-        // Do a priority insertion of an XON/XOFF char, if needed.
-        const uint8_t state = xon_xoff_state;
-        if (!(state & XON_XOFF_CHAR_SENT)) {
-          writeNoHandshake(state & XON_XOFF_CHAR_MASK);
-          xon_xoff_state = state | XON_XOFF_CHAR_SENT;
-        }
-      #endif
-      writeNoHandshake(c);
-    }
-
-    void MarlinSerial::writeNoHandshake(const uint8_t c) {
-      while (!(HWUART->UART_SR & UART_SR_TXRDY)) { sw_barrier(); };
+      while (!(HWUART->UART_SR & UART_SR_TXRDY)) sw_barrier();
       HWUART->UART_THR = c;
     }
 

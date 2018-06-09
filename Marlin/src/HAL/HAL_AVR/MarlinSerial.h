@@ -94,11 +94,7 @@
     extern ring_buffer_pos_t rx_max_enqueued;
   #endif
 
-  #if ENABLED(EMERGENCY_PARSER)
-    extern bool killed_by_M112;
-  #endif
-
-  class MarlinSerial { //: public Stream
+  class MarlinSerial {
 
     public:
       MarlinSerial() {};
@@ -108,13 +104,10 @@
       static int read(void);
       static void flush(void);
       static ring_buffer_pos_t available(void);
-      static void checkRx(void);
       static void write(const uint8_t c);
       #if TX_BUFFER_SIZE > 0
-        static uint8_t availableForWrite(void);
         static void flushTX(void);
       #endif
-      static void writeNoHandshake(const uint8_t c);
 
       #if ENABLED(SERIAL_STATS_DROPPED_RX)
         FORCE_INLINE static uint32_t dropped() { return rx_dropped_bytes; }

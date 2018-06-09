@@ -77,7 +77,7 @@
 #if HAS_TRINAMIC
   #include "stepper_indirection.h"
   #include "../feature/tmc_util.h"
-  #define TMC_GET_PWMTHRS(P,Q) _tmc_thrs(stepper##Q.microsteps(), stepper##Q.TPWMTHRS(), planner.axis_steps_per_mm[P##_AXIS])
+  #define TMC_GET_PWMTHRS(A,Q) _tmc_thrs(stepper##Q.microsteps(), stepper##Q.TPWMTHRS(), planner.axis_steps_per_mm[_AXIS(A)])
 #endif
 
 #if ENABLED(FWRETRACT)
@@ -86,6 +86,10 @@
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   #include "../feature/pause.h"
+#endif
+
+#if ENABLED(PID_EXTRUSION_SCALING)
+  #define LPQ_LEN thermalManager.lpq_len
 #endif
 
 #pragma pack(push, 1) // No padding between variables
@@ -198,7 +202,7 @@ typedef struct SettingsDataStruct {
   //
   PIDC hotendPID[MAX_EXTRUDERS];                        // M301 En PIDC / M303 En U
 
-  int lpq_len;                                          // M301 L
+  int16_t lpq_len;                                      // M301 L
 
   //
   // PIDTEMPBED
@@ -594,9 +598,9 @@ void MarlinSettings::postprocess() {
     _FIELD_TEST(lpq_len);
 
     #if DISABLED(PID_EXTRUSION_SCALING)
-      int lpq_len = 20;
+      const int16_t LPQ_LEN = 20;
     #endif
-    EEPROM_WRITE(lpq_len);
+    EEPROM_WRITE(LPQ_LEN);
 
     #if DISABLED(PIDTEMPBED)
       dummy = DUMMY_PID_VALUE;
@@ -954,7 +958,6 @@ void MarlinSettings::postprocess() {
         SERIAL_ECHOPAIR_P(port, "(EEPROM=", stored_ver);
         SERIAL_ECHOLNPGM_P(port, " Marlin=" EEPROM_VERSION ")");
       #endif
-      if (!validating) reset();
       eeprom_error = true;
     }
     else {
@@ -1200,9 +1203,9 @@ void MarlinSettings::postprocess() {
       _FIELD_TEST(lpq_len);
 
       #if DISABLED(PID_EXTRUSION_SCALING)
-        int lpq_len;
+        int16_t LPQ_LEN;
       #endif
-      EEPROM_READ(lpq_len);
+      EEPROM_READ(LPQ_LEN);
 
       //
       // Heated Bed PID
@@ -1326,7 +1329,7 @@ void MarlinSettings::postprocess() {
       #endif
 
       #if ENABLED(HYBRID_THRESHOLD)
-        #define TMC_SET_PWMTHRS(P,Q) tmc_set_pwmthrs(stepper##Q, TMC_##Q, tmc_hybrid_threshold[TMC_##Q], planner.axis_steps_per_mm[P##_AXIS])
+        #define TMC_SET_PWMTHRS(A,Q) tmc_set_pwmthrs(stepper##Q, tmc_hybrid_threshold[TMC_##Q], planner.axis_steps_per_mm[_AXIS(A)])
         uint32_t tmc_hybrid_threshold[TMC_AXES];
         EEPROM_READ(tmc_hybrid_threshold);
         if (!validating) {
@@ -1511,15 +1514,13 @@ void MarlinSettings::postprocess() {
         #endif
       }
 
-      if (!validating) {
-        if (eeprom_error) reset(); else postprocess();
-      }
+      if (!validating && !eeprom_error) postprocess();
 
       #if ENABLED(AUTO_BED_LEVELING_UBL)
-        ubl.report_state();
-
         if (!validating) {
-          if (!ubl.sanity_check()) {
+            ubl.report_state();
+
+            if (!ubl.sanity_check()) {
             SERIAL_EOL_P(port);
             #if ENABLED(EEPROM_CHITCHAT)
               ubl.echo_name();
@@ -1815,7 +1816,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
       #endif
     }
     #if ENABLED(PID_EXTRUSION_SCALING)
-      lpq_len = 20; // default last-position-queue size
+      thermalManager.lpq_len = 20; // default last-position-queue size
     #endif
   #endif // PIDTEMP
 
@@ -1895,17 +1896,37 @@ void MarlinSettings::reset(PORTARG_SOLO) {
   #define CONFIG_ECHO_START do{ if (!forReplay) SERIAL_ECHO_START_P(port); }while(0)
 
   #if HAS_TRINAMIC
-    void say_M906(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M906 "); }
+    void say_M906(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M906"); }
     #if ENABLED(HYBRID_THRESHOLD)
-      void say_M913(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M913 "); }
+      void say_M913(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M913"); }
     #endif
     #if ENABLED(SENSORLESS_HOMING)
-      void say_M914(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M914 "); }
+      void say_M914(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M914"); }
     #endif
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     void say_M603(PORTARG_SOLO) { SERIAL_ECHOPGM_P(port, "  M603 "); }
+  #endif
+
+  inline void say_units(
+    #if NUM_SERIAL > 1
+      const int8_t port,
+    #endif
+    const bool colon
+  ) {
+    serialprintPGM_P(port,
+      #if ENABLED(INCH_MODE_SUPPORT)
+        parser.linear_unit_factor != 1.0 ? PSTR(" (in)") :
+      #endif
+      PSTR(" (mm)")
+    );
+    if (colon) SERIAL_ECHOLNPGM_P(port, ":");
+  }
+  #if NUM_SERIAL > 1
+    #define SAY_UNITS_P(PORT, COLON) say_units(PORT, COLON)
+  #else
+    #define SAY_UNITS_P(PORT, COLON) say_units(COLON)
   #endif
 
   /**
@@ -1927,13 +1948,15 @@ void MarlinSettings::reset(PORTARG_SOLO) {
       #define VOLUMETRIC_UNIT(N) (float(N) / (parser.volumetric_enabled ? parser.volumetric_unit_factor : parser.linear_unit_factor))
       SERIAL_ECHOPGM_P(port, "  G2");
       SERIAL_CHAR_P(port, parser.linear_unit_factor == 1.0 ? '1' : '0');
-      SERIAL_ECHOPGM_P(port, " ; Units in ");
-      serialprintPGM_P(port, parser.linear_unit_factor == 1.0 ? PSTR("mm\n") : PSTR("inches\n"));
+      SERIAL_ECHOPGM_P(port, " ;");
+      SAY_UNITS_P(port, false);
     #else
       #define LINEAR_UNIT(N) (N)
       #define VOLUMETRIC_UNIT(N) (N)
-      SERIAL_ECHOLNPGM_P(port, "  G21    ; Units in mm");
+      SERIAL_ECHOPGM_P(port, "  G21    ; Units in mm");
+      SAY_UNITS_P(port, false);
     #endif
+    SERIAL_EOL_P(port);
 
     #if ENABLED(ULTIPANEL)
 
@@ -2103,7 +2126,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
         SERIAL_ECHOPAIR_P(port, "  M218 T", (int)e);
         SERIAL_ECHOPAIR_P(port, " X", LINEAR_UNIT(hotend_offset[X_AXIS][e]));
         SERIAL_ECHOPAIR_P(port, " Y", LINEAR_UNIT(hotend_offset[Y_AXIS][e]));
-        #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(SWITCHING_NOZZLE) ||ENABLED(PARKING_EXTRUDER)
+        #if HAS_HOTEND_OFFSET_Z
           SERIAL_ECHOPAIR_P(port, " Z", LINEAR_UNIT(hotend_offset[Z_AXIS][e]));
         #endif
         SERIAL_EOL_P(port);
@@ -2179,8 +2202,8 @@ void MarlinSettings::reset(PORTARG_SOLO) {
           for (uint8_t py = 0; py < GRID_MAX_POINTS_Y; py++) {
             for (uint8_t px = 0; px < GRID_MAX_POINTS_X; px++) {
               CONFIG_ECHO_START;
-              SERIAL_ECHOPAIR_P(port, "  G29 W I", (int)px + 1);
-              SERIAL_ECHOPAIR_P(port, " J", (int)py + 1);
+              SERIAL_ECHOPAIR_P(port, "  G29 W I", (int)px);
+              SERIAL_ECHOPAIR_P(port, " J", (int)py);
               SERIAL_ECHOPGM_P(port, " Z");
               SERIAL_ECHO_F_P(port, LINEAR_UNIT(z_values[px][py]), 5);
               SERIAL_EOL_P(port);
@@ -2269,7 +2292,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
               SERIAL_ECHOPAIR_P(port, " D", unscalePID_d(PID_PARAM(Kd, e)));
               #if ENABLED(PID_EXTRUSION_SCALING)
                 SERIAL_ECHOPAIR_P(port, " C", PID_PARAM(Kc, e));
-                if (e == 0) SERIAL_ECHOPAIR_P(port, " L", lpq_len);
+                if (e == 0) SERIAL_ECHOPAIR_P(port, " L", thermalManager.lpq_len);
               #endif
               SERIAL_EOL_P(port);
             }
@@ -2284,7 +2307,7 @@ void MarlinSettings::reset(PORTARG_SOLO) {
           SERIAL_ECHOPAIR_P(port, " D", unscalePID_d(PID_PARAM(Kd, 0)));
           #if ENABLED(PID_EXTRUSION_SCALING)
             SERIAL_ECHOPAIR_P(port, " C", PID_PARAM(Kc, 0));
-            SERIAL_ECHOPAIR_P(port, " L", lpq_len);
+            SERIAL_ECHOPAIR_P(port, " L", thermalManager.lpq_len);
           #endif
           SERIAL_EOL_P(port);
         }
@@ -2345,7 +2368,8 @@ void MarlinSettings::reset(PORTARG_SOLO) {
     #if HAS_BED_PROBE
       if (!forReplay) {
         CONFIG_ECHO_START;
-        SERIAL_ECHOLNPGM_P(port, "Z-Probe Offset (mm):");
+        SERIAL_ECHOPGM_P(port, "Z-Probe Offset (mm):");
+        SAY_UNITS_P(port, true);
       }
       CONFIG_ECHO_START;
       SERIAL_ECHOLNPAIR_P(port, "  M851 Z", LINEAR_UNIT(zprobe_zoffset));
@@ -2385,49 +2409,56 @@ void MarlinSettings::reset(PORTARG_SOLO) {
         SERIAL_ECHOLNPGM_P(port, "Stepper driver current:");
       }
       CONFIG_ECHO_START;
-      #if X_IS_TRINAMIC
+      #if X_IS_TRINAMIC || Y_IS_TRINAMIC || Z_IS_TRINAMIC
         say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "X", stepperX.getCurrent());
       #endif
-      #if X2_IS_TRINAMIC
-        say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "I1 X", stepperX2.getCurrent());
+      #if X_IS_TRINAMIC
+        SERIAL_ECHOPAIR_P(port, " X", stepperX.getCurrent());
       #endif
       #if Y_IS_TRINAMIC
-        say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "Y", stepperY.getCurrent());
-      #endif
-      #if Y2_IS_TRINAMIC
-        say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "I1 Y", stepperY2.getCurrent());
+        SERIAL_ECHOPAIR_P(port, " Y", stepperY.getCurrent());
       #endif
       #if Z_IS_TRINAMIC
+        SERIAL_ECHOPAIR_P(port, " Z", stepperZ.getCurrent());
+      #endif
+      #if X_IS_TRINAMIC || Y_IS_TRINAMIC || Z_IS_TRINAMIC
+        SERIAL_EOL_P(port);
+      #endif
+      #if X2_IS_TRINAMIC || Y2_IS_TRINAMIC || Z2_IS_TRINAMIC
         say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "Z", stepperZ.getCurrent());
+        SERIAL_ECHOPGM_P(port, " I1");
+      #endif
+      #if X2_IS_TRINAMIC
+        SERIAL_ECHOPAIR_P(port, " X", stepperX2.getCurrent());
+      #endif
+      #if Y2_IS_TRINAMIC
+        SERIAL_ECHOPAIR_P(port, " Y", stepperY2.getCurrent());
       #endif
       #if Z2_IS_TRINAMIC
-        say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "I1 Z", stepperZ2.getCurrent());
+        SERIAL_ECHOPAIR_P(port, " Z", stepperZ2.getCurrent());
+      #endif
+      #if X2_IS_TRINAMIC || Y2_IS_TRINAMIC || Z2_IS_TRINAMIC
+        SERIAL_EOL_P(port);
       #endif
       #if E0_IS_TRINAMIC
         say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "T0 E", stepperE0.getCurrent());
+        SERIAL_ECHOLNPAIR_P(port, " T0 E", stepperE0.getCurrent());
       #endif
       #if E_STEPPERS > 1 && E1_IS_TRINAMIC
         say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "T1 E", stepperE1.getCurrent());
+        SERIAL_ECHOLNPAIR_P(port, " T1 E", stepperE1.getCurrent());
       #endif
       #if E_STEPPERS > 2 && E2_IS_TRINAMIC
         say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "T2 E", stepperE2.getCurrent());
+        SERIAL_ECHOLNPAIR_P(port, " T2 E", stepperE2.getCurrent());
       #endif
       #if E_STEPPERS > 3 && E3_IS_TRINAMIC
         say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "T3 E", stepperE3.getCurrent());
+        SERIAL_ECHOLNPAIR_P(port, " T3 E", stepperE3.getCurrent());
       #endif
       #if E_STEPPERS > 4 && E4_IS_TRINAMIC
         say_M906(PORTVAR_SOLO);
-        SERIAL_ECHOLNPAIR_P(port, "T4 E", stepperE4.getCurrent());
+        SERIAL_ECHOLNPAIR_P(port, " T4 E", stepperE4.getCurrent());
       #endif
       SERIAL_EOL_P(port);
 
@@ -2440,49 +2471,56 @@ void MarlinSettings::reset(PORTARG_SOLO) {
           SERIAL_ECHOLNPGM_P(port, "Hybrid Threshold:");
         }
         CONFIG_ECHO_START;
-        #if X_IS_TRINAMIC
+        #if X_IS_TRINAMIC || Y_IS_TRINAMIC || Z_IS_TRINAMIC
           say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "X", TMC_GET_PWMTHRS(X, X));
         #endif
-        #if X2_IS_TRINAMIC
-          say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "I1 X", TMC_GET_PWMTHRS(X, X2));
+        #if X_IS_TRINAMIC
+          SERIAL_ECHOPAIR_P(port, " X", TMC_GET_PWMTHRS(X, X));
         #endif
         #if Y_IS_TRINAMIC
-          say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "Y", TMC_GET_PWMTHRS(Y, Y));
-        #endif
-        #if Y2_IS_TRINAMIC
-          say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "I1 Y", TMC_GET_PWMTHRS(Y, Y2));
+          SERIAL_ECHOPAIR_P(port, " Y", TMC_GET_PWMTHRS(Y, Y));
         #endif
         #if Z_IS_TRINAMIC
+          SERIAL_ECHOPAIR_P(port, " Z", TMC_GET_PWMTHRS(Z, Z));
+        #endif
+        #if X_IS_TRINAMIC || Y_IS_TRINAMIC || Z_IS_TRINAMIC
+          SERIAL_EOL_P(port);
+        #endif
+        #if X2_IS_TRINAMIC || Y2_IS_TRINAMIC || Z2_IS_TRINAMIC
           say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "Z", TMC_GET_PWMTHRS(Z, Z));
+          SERIAL_ECHOPGM_P(port, " I1");
+        #endif
+        #if X2_IS_TRINAMIC
+          SERIAL_ECHOPAIR_P(port, " X", TMC_GET_PWMTHRS(X, X2));
+        #endif
+        #if Y2_IS_TRINAMIC
+          SERIAL_ECHOPAIR_P(port, " Y", TMC_GET_PWMTHRS(Y, Y2));
         #endif
         #if Z2_IS_TRINAMIC
-          say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "I1 Z", TMC_GET_PWMTHRS(Z, Z2));
+          SERIAL_ECHOPAIR_P(port, " Z", TMC_GET_PWMTHRS(Z, Z2));
+        #endif
+        #if X2_IS_TRINAMIC || Y2_IS_TRINAMIC || Z2_IS_TRINAMIC
+          SERIAL_EOL_P(port);
         #endif
         #if E0_IS_TRINAMIC
           say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "T0 E", TMC_GET_PWMTHRS(E, E0));
+          SERIAL_ECHOLNPAIR_P(port, " T0 E", TMC_GET_PWMTHRS(E, E0));
         #endif
         #if E_STEPPERS > 1 && E1_IS_TRINAMIC
           say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "T1 E", TMC_GET_PWMTHRS(E, E1));
+          SERIAL_ECHOLNPAIR_P(port, " T1 E", TMC_GET_PWMTHRS(E, E1));
         #endif
         #if E_STEPPERS > 2 && E2_IS_TRINAMIC
           say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "T2 E", TMC_GET_PWMTHRS(E, E2));
+          SERIAL_ECHOLNPAIR_P(port, " T2 E", TMC_GET_PWMTHRS(E, E2));
         #endif
         #if E_STEPPERS > 3 && E3_IS_TRINAMIC
           say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "T3 E", TMC_GET_PWMTHRS(E, E3));
+          SERIAL_ECHOLNPAIR_P(port, " T3 E", TMC_GET_PWMTHRS(E, E3));
         #endif
         #if E_STEPPERS > 4 && E4_IS_TRINAMIC
           say_M913(PORTVAR_SOLO);
-          SERIAL_ECHOLNPAIR_P(port, "T4 E", TMC_GET_PWMTHRS(E, E4));
+          SERIAL_ECHOLNPAIR_P(port, " T4 E", TMC_GET_PWMTHRS(E, E4));
         #endif
         SERIAL_EOL_P(port);
       #endif // HYBRID_THRESHOLD
@@ -2496,38 +2534,42 @@ void MarlinSettings::reset(PORTARG_SOLO) {
           SERIAL_ECHOLNPGM_P(port, "Sensorless homing threshold:");
         }
         CONFIG_ECHO_START;
-        #ifdef X_HOMING_SENSITIVITY
-          #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
-            say_M914(PORTVAR_SOLO);
-            SERIAL_ECHOLNPAIR_P(port, "X", stepperX.sgt());
+        #define HAS_X_SENSORLESS (defined(X_HOMING_SENSITIVITY) && (ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)))
+        #define HAS_Y_SENSORLESS (defined(Y_HOMING_SENSITIVITY) && (ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)))
+        #define HAS_Z_SENSORLESS (defined(Z_HOMING_SENSITIVITY) && (ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)))
+        #if HAS_X_SENSORLESS || HAS_Y_SENSORLESS || HAS_Z_SENSORLESS
+          say_M914(PORTVAR_SOLO);
+          #if HAS_X_SENSORLESS
+            SERIAL_ECHOPAIR_P(port, " X", stepperX.sgt());
           #endif
-          #if ENABLED(X2_IS_TMC2130)
-            say_M914(PORTVAR_SOLO);
-            SERIAL_ECHOLNPAIR_P(port, "I1 X", stepperX2.sgt());
+          #if HAS_Y_SENSORLESS
+            SERIAL_ECHOPAIR_P(port, " Y", stepperY.sgt());
           #endif
+          #if HAS_Z_SENSORLESS
+            SERIAL_ECHOPAIR_P(port, " Z", stepperZ.sgt());
+          #endif
+          SERIAL_EOL_P(port);
         #endif
-        #ifdef Y_HOMING_SENSITIVITY
-          #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
-            say_M914(PORTVAR_SOLO);
-            SERIAL_ECHOLNPAIR_P(port, "Y", stepperY.sgt());
+
+        #define HAS_X2_SENSORLESS (defined(X_HOMING_SENSITIVITY) && ENABLED(X2_IS_TMC2130))
+        #define HAS_Y2_SENSORLESS (defined(Y_HOMING_SENSITIVITY) && ENABLED(Y2_IS_TMC2130))
+        #define HAS_Z2_SENSORLESS (defined(Z_HOMING_SENSITIVITY) && ENABLED(Z2_IS_TMC2130))
+        #if HAS_X2_SENSORLESS || HAS_Y2_SENSORLESS || HAS_Z2_SENSORLESS
+          say_M914(PORTVAR_SOLO);
+          SERIAL_ECHOPGM_P(port, " I1");
+          #if HAS_X2_SENSORLESS
+            SERIAL_ECHOPAIR_P(port, " X", stepperX2.sgt());
           #endif
-          #if ENABLED(Y2_IS_TMC2130)
-            say_M914(PORTVAR_SOLO);
-            SERIAL_ECHOLNPAIR_P(port, "I1 Y", stepperY2.sgt());
+          #if HAS_Y2_SENSORLESS
+            SERIAL_ECHOPAIR_P(port, " Y", stepperY2.sgt());
           #endif
+          #if HAS_Z2_SENSORLESS
+            SERIAL_ECHOPAIR_P(port, " Z", stepperZ2.sgt());
+          #endif
+          SERIAL_EOL_P(port);
         #endif
-        #ifdef Z_HOMING_SENSITIVITY
-          #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
-            say_M914(PORTVAR_SOLO);
-            SERIAL_ECHOLNPAIR_P(port, "Z", stepperZ.sgt());
-          #endif
-          #if ENABLED(Z2_IS_TMC2130)
-            say_M914(PORTVAR_SOLO);
-            SERIAL_ECHOLNPAIR_P(port, "I1 Z", stepperZ2.sgt());
-          #endif
-        #endif
-        SERIAL_EOL_P(port);
-      #endif
+
+      #endif // SENSORLESS_HOMING
 
     #endif // HAS_TRINAMIC
 
